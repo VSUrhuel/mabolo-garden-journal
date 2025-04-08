@@ -1,44 +1,45 @@
 import NextLogo from "./next-logo";
 import SupabaseLogo from "./supabase-logo";
+import Link from "next/link";
 
 export default function Header() {
   return (
-    <div className="flex flex-col gap-16 items-center">
-      <div className="flex gap-8 justify-center items-center">
-        <a
-          href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <SupabaseLogo />
-        </a>
-        <span className="border-l rotate-45 h-6" />
-        <a href="https://nextjs.org/" target="_blank" rel="noreferrer">
-          <NextLogo />
-        </a>
+    <div className="min-h-[60vh] flex items-center justify-center  px-4 py-6 w-full">
+      <div className="max-w-3xl mx-auto text-center space-y-6">
+        <h1 className="text-4xl md:text-5xl font-bold text-green-800 dark:text-green-50 font-serif">
+          Welcome to Mabolo Garden Journal
+        </h1>
+        <p className="text-xl text-green-600 italic">
+          Cultivate Your Green Sanctuary
+        </p>
+        <p className="text-lg text-gray-700 dark:text-gray-100 leading-relaxed">
+          Discover the joy of gardening with our curated tips, seasonal guides,
+          and personal journaling tools. Whether you're a budding grower or a
+          seasoned green thumb, let’s nurture your garden—one leaf at a time.
+        </p>
+        <div className="pt-4 flex gap-4 justify-center">
+          {/* Primary Button (Dark Mode) */}
+          <button
+            className="px-6 py-2 bg-green-600 text-white rounded-lg 
+                    hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600 
+                    transition-all duration-200 shadow-md 
+                    dark:shadow-green-900/30"
+          >
+            <Link href="/journal">Start Journaling</Link>
+          </button>
+
+          {/* Secondary Button (Dark Mode) */}
+          <button
+            className="px-6 py-2 border border-green-600 text-green-600 rounded-lg 
+                    hover:bg-green-50 dark:border-green-400 dark:text-green-100 
+                    dark:hover:bg-green-900/30 dark:hover:border-green-300 
+                    transition-all duration-200 shadow-sm 
+                    dark:shadow-green-900/10"
+          >
+            Explore Resources
+          </button>
+        </div>
       </div>
-      <h1 className="sr-only">Supabase and Next.js Starter Template</h1>
-      <p className="text-3xl lg:text-4xl !leading-tight mx-auto max-w-xl text-center">
-        The fastest way to build apps with{" "}
-        <a
-          href="https://supabase.com/?utm_source=create-next-app&utm_medium=template&utm_term=nextjs"
-          target="_blank"
-          className="font-bold hover:underline"
-          rel="noreferrer"
-        >
-          Supabase
-        </a>{" "}
-        and{" "}
-        <a
-          href="https://nextjs.org/"
-          target="_blank"
-          className="font-bold hover:underline"
-          rel="noreferrer"
-        >
-          Next.js
-        </a>
-      </p>
-      <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
     </div>
   );
 }

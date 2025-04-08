@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { createClient } from "@/utils/supabase/server";
+import { ThemeSwitcher } from "./theme-switcher";
 
 export default async function AuthButton() {
   const supabase = await createClient();
@@ -34,15 +35,6 @@ export default async function AuthButton() {
             >
               <Link href="/sign-in">Sign in</Link>
             </Button>
-            <Button
-              asChild
-              size="sm"
-              variant={"default"}
-              disabled
-              className="opacity-75 cursor-none pointer-events-none"
-            >
-              <Link href="/sign-up">Sign up</Link>
-            </Button>
           </div>
         </div>
       </>
@@ -55,6 +47,7 @@ export default async function AuthButton() {
         <Button type="submit" variant={"outline"}>
           Sign out
         </Button>
+        <ThemeSwitcher />
       </form>
     </div>
   ) : (
@@ -62,9 +55,7 @@ export default async function AuthButton() {
       <Button asChild size="sm" variant={"outline"}>
         <Link href="/sign-in">Sign in</Link>
       </Button>
-      <Button asChild size="sm" variant={"default"}>
-        <Link href="/sign-up">Sign up</Link>
-      </Button>
+      <ThemeSwitcher />
     </div>
   );
 }

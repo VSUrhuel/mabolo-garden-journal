@@ -3,7 +3,7 @@ import Image from "next/image";
 export default function PreviewArticle({
   title,
   publishDate,
-  sdgs,
+  sdgParm,
   tags,
   content,
   jsonContent,
@@ -23,8 +23,8 @@ export default function PreviewArticle({
   return (
     <div className="prose max-w-none">
       <h1 className="text-4xl font-bold">{title}</h1>
-      <div className="text-gray-500 flex space-x-4 py-2 my-4 text-sm mt-2 bg-red-500/10 px-2 rounded-lg border ">
-        <div className="flex items-center space-x-3">
+      <div className="text-gray-500 md:flex grid space-y-0 space-x-0 md:space-x-4 py-2 my-4 text-sm mt-2  px-2 rounded-lg border  ">
+        <div className="flex items-center ">
           <svg
             class="w-6 h-6 text-gray-800 dark:text-white"
             aria-hidden="true"
@@ -41,13 +41,13 @@ export default function PreviewArticle({
             />
           </svg>
 
-          <span className="mr-2 dark:text-100">Written by: </span>
-          <span className="ml-2 text-gray-700 dark:text-gray-100 font-semibold">
+          <span className="dark:text-100">Written by: </span>
+          <span className="sm:ml-2 text-gray-700 dark:text-gray-100 font-semibold">
             {" "}
             Mabolo Admin
           </span>
         </div>
-        <div className="flex items-center space-x-2 mt-1">
+        <div className="flex items-center mr-0 ml-0 space-x-2 md:space-y-0 ">
           <svg
             class="w-6 h-6 text-gray-800 dark:text-white"
             aria-hidden="true"
@@ -64,7 +64,7 @@ export default function PreviewArticle({
             />
           </svg>
 
-          <span className="mr-2 dark:text-100">Published:</span>
+          <span className="mr-0 ml-0 md:mr-2 dark:text-100 ">Published:</span>
           <span className="text-gray-700 dark:text-gray-100 font-semibold">
             {new Date(publishDate).toLocaleDateString("en-US")}
           </span>
@@ -82,26 +82,26 @@ export default function PreviewArticle({
 
       <div dangerouslySetInnerHTML={{ __html: content }} />
       <br />
-      <div className="mt-12 border-t border-gray-200 pt-8">
+      <div className=" border-t border-gray-200 pt-2">
         {/* Categories Section */}
-        <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wider mb-2">
+        <h3 className="text-sm mt-2 font-semibold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
           Sustainable Development Goals
         </h3>
-        <p className="text-gray-600 text-sm mb-4">
+        <p className="text-gray-600 text-sm mb-4 dark:text-gray-400">
           This article aligns with the following SDGs:
         </p>
 
         <div className="flex flex-wrap gap-4">
-          {sdgs &&
-            sdgs.split(",").map((sdg) => {
-              const sdgNumber = sdg.trim().replace("SDG", "").trim();
+          {sdgParm &&
+            sdgParm.map((sdg) => {
+              const sdgNumber = sdg.trim();
 
               return (
                 <div
                   key={sdg}
                   className="group relative w-16 flex flex-col items-center"
                 >
-                  <div className="w-16 h-16 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center shadow-sm group-hover:shadow-md transition-all">
+                  <div className="mt-2 w-16 h-16 rounded-full bg-white border-2 border-gray-200 flex items-center justify-center shadow-sm group-hover:shadow-md transition-all">
                     <img
                       src={`/sdg-icon-dark/E Inverted Icons_WEB-${sdgNumber}.png`}
                       alt={`SDG ${sdgNumber}`}
@@ -110,7 +110,7 @@ export default function PreviewArticle({
                       className="w-12 h-12 object-cover"
                     />
                   </div>
-                  <span className="text-xs text-gray-600 mt-2 text-center font-medium">
+                  <span className="text-xs dark:text-gray-400 text-gray-600 mt-2 text-center font-medium">
                     SDG {sdgNumber}
                   </span>
                 </div>
@@ -120,7 +120,7 @@ export default function PreviewArticle({
         <br />
         {/* Tags Section */}
         <div className="mb-2">
-          <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          <h3 className="text-sm font-semibold dark:text-gray-400 uppercase tracking-wider mb-3">
             Tags
           </h3>
           <div className="flex flex-wrap gap-2">
@@ -128,7 +128,7 @@ export default function PreviewArticle({
               tags.split(",").map((tag) => (
                 <span
                   key={tag}
-                  className="bg-blue-100 hover:bg-blue-200 px-3 py-1.5 rounded-full text-sm font-medium text-blue-700 transition-colors duration-200"
+                  className="bg-blue-100 dark:bg-blue-100 dark:text-black hover:bg-blue-200 px-3 py-1.5 rounded-full text-sm font-medium transition-colors duration-200"
                 >
                   #{tag.trim()}
                 </span>

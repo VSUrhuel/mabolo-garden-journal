@@ -1,4 +1,6 @@
 "use client";
+
+import { Separator } from "@/components/ui/separator";
 import {
   forwardRef,
   useEffect,
@@ -172,25 +174,22 @@ const ArticleEditor = forwardRef((props, ref) => {
   };
 
   return (
-    <div className="min-h-[60vh]">
+    <div className="min-h-[60vh] ">
       {editor && (
         <BubbleMenu editor={editor}>
           <Dialog>
             <DialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mr-2 border-2 border-red-400"
-              >
+              <Button variant="outline" size="sm" className="mr-2 border-2">
                 Insert Image
               </Button>
             </DialogTrigger>
+
             <DialogContent>
               <DialogHeader>
-                <DialogTitle className="py-8">Insert Image</DialogTitle>
+                <DialogTitle className="py-2">Insert Image</DialogTitle>
 
                 <div className="space-y-4">
-                  <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                  <div className="border-2 border-dashed rounded-lg p-2 text-center">
                     {previewImage ? (
                       <div className="flex flex-col items-center gap-4">
                         <img
@@ -213,12 +212,12 @@ const ArticleEditor = forwardRef((props, ref) => {
                       </div>
                     ) : (
                       <div>
-                        <div className="text-gray-500 mb-4">
+                        <div className="text-gray-500 items-center mb-2">
                           Upload an image to insert
                         </div>
                         <label
                           htmlFor="image-upload"
-                          className="inline-flex items-center justify-center px-4 py-2 my-16 border-2 border-dashed border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-150 cursor-pointer 
+                          className="inline-flex items-center justify-center px-4 py-2 mb-2 border-2 border-dashed border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-150 cursor-pointer 
             dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-500"
                         >
                           <svg

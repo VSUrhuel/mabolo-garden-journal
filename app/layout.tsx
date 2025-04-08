@@ -8,6 +8,7 @@ import { ThemeProvider } from "next-themes";
 import Link from "next/link";
 import "./globals.css";
 import { LucideGithub, LucideLinkedin, LucideTwitch } from "lucide-react";
+import { Toaster } from "@/components/ui/sonner";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -46,13 +47,22 @@ export default function RootLayout({
               <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
                 <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
                   <div className="flex gap-5 items-center font-semibold">
-                    <Link href={"/"}>Jarden de Mabolo Journal</Link>
+                    <Link href={"/"}>
+                      <span className="hidden md:block">
+                        Jarden de Mabolo Journal
+                      </span>
+                      <img
+                        src="/profile.jpg"
+                        className="md:hidden grid rounded-full object-cover h-8 w-8"
+                      ></img>
+                    </Link>
                   </div>
                   {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
                 </div>
               </nav>
               <div className="flex flex-col gap-0 max-w-5xl w-full p-2">
                 {children}
+                <Toaster />
               </div>
 
               <footer className="w-full border-t py-12 bg-gray-50 dark:bg-[#0a0a0a]">

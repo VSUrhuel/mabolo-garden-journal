@@ -36,33 +36,43 @@ export const updateSession = async (request: NextRequest) => {
     );
 
     // This will refresh session if expired - required for Server Components
-    // https://supabase.com/docs/guides/auth/server-side/nextjs
-    const user = await supabase.auth.getUser();
-    const { pathname } = request.nextUrl;
 
-    // protected routes - redirect to sign-in if not authenticated
+    const { pathname } = request.nextUrl;
+    const user = { error: true }; // Replace with your actual auth check
+
+    // Redirect rules
     if (
       (pathname.startsWith("/protected") || pathname === "/journal") &&
       user.error
     ) {
       const signInUrl = new URL("/sign-in", request.url);
-      // Optional: Add redirect path for after sign-in
       signInUrl.searchParams.set("redirect", pathname);
       return NextResponse.redirect(signInUrl);
     }
 
-    // if authenticated and on home page, redirect to protected
+    if (pathname === "/sign-up") {
+      return NextResponse.redirect(new URL("/sign-in", request.url));
+    }
+
+    if (pathname.startsWith("/draft-view")) {
+      if (user.error) {
+        const signInUrl = new URL("/sign-in", request.url);
+        signInUrl.searchParams.set("message", "admin-required");
+        signInUrl.searchParams.set("redirect", pathname);
+        return NextResponse.redirect(signInUrl);
+      }
+
+      // Additional admin check if needed
+      // if (!user.isAdmin) {
+      //   return NextResponse.redirect(new URL("/unauthorized", request.url))
+      // }
+    }
+
     if (pathname === "/" && !user.error) {
       return NextResponse.redirect(new URL("/protected", request.url));
     }
 
-    // if (request.nextUrl.pathname === "journal" && user.error) {
-    //   return NextResponse.redirect(new URL("/sign-in", request.url));
-    // } else {
-    //   return NextResponse.redirect(new URL("/journal", request.url));
-    // }
-
-    return response;
+    return NextResponse.next();
   } catch (e) {
     // If you are here, a Supabase client could not be created!
     // This is likely because you have not set up environment variables.

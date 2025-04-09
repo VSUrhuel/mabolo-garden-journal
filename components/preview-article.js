@@ -19,6 +19,29 @@ export default function PreviewArticle({
     .addEventListener("change", (e) => {
       setDarkMode(e.matches);
     });
+  function formatArticleContent(content, jsonContent) {
+    // 1. Add <br /> between <img> and <p> tags
+    let processedContent = content.replace(
+      /<\/(p|img)>\s*(<p|img)/g,
+      "</$1><br />$2"
+    );
+
+    // 2. Add styling for images (e.g., border-radius and consistent width)
+    processedContent = processedContent.replace(/<img([^>]+)>/g, (match) => {
+      // If an image doesn't already have styles, add the border-radius
+      return match.replace(
+        /<img([^>]+)>/,
+        '<img$1 style="border-radius: 8px; max-width: 100%; height: auto;" />'
+      );
+    });
+
+    // 3. Justify the text for article content (using CSS for better control)
+    processedContent = `<div style="text-align: justify;">${processedContent}</div>`;
+
+    return processedContent;
+  }
+
+  const processedContent = formatArticleContent(content, jsonContent);
 
   return (
     <div className="prose max-w-none">
@@ -26,7 +49,7 @@ export default function PreviewArticle({
       <div className="text-gray-500 md:flex grid space-y-0 space-x-0 md:space-x-4 py-2 my-4 text-sm mt-2  px-2 rounded-lg border  ">
         <div className="flex items-center ">
           <svg
-            class="w-6 h-6 text-gray-800 dark:text-white"
+            className="w-6 h-6 text-gray-800 dark:text-white"
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -35,9 +58,9 @@ export default function PreviewArticle({
             viewBox="0 0 24 24"
           >
             <path
-              fill-rule="evenodd"
+              fillRule="evenodd"
               d="M12 4a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm-2 9a4 4 0 0 0-4 4v1a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2v-1a4 4 0 0 0-4-4h-4Z"
-              clip-rule="evenodd"
+              clipRule="evenodd"
             />
           </svg>
 
@@ -49,7 +72,7 @@ export default function PreviewArticle({
         </div>
         <div className="flex items-center mr-0 ml-0 space-x-2 md:space-y-0 ">
           <svg
-            class="w-6 h-6 text-gray-800 dark:text-white"
+            className="w-6 h-6 text-gray-800 dark:text-white"
             aria-hidden="true"
             xmlns="http://www.w3.org/2000/svg"
             width="24"
@@ -58,9 +81,9 @@ export default function PreviewArticle({
             viewBox="0 0 24 24"
           >
             <path
-              fill-rule="evenodd"
+              fillRule="evenodd"
               d="M5 5a1 1 0 0 0 1-1 1 1 0 1 1 2 0 1 1 0 0 0 1 1h1a1 1 0 0 0 1-1 1 1 0 1 1 2 0 1 1 0 0 0 1 1h1a1 1 0 0 0 1-1 1 1 0 1 1 2 0 1 1 0 0 0 1 1 2 2 0 0 1 2 2v1a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V7a2 2 0 0 1 2-2ZM3 19v-7a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Zm6.01-6a1 1 0 1 0-2 0 1 1 0 0 0 2 0Zm2 0a1 1 0 1 1 2 0 1 1 0 0 1-2 0Zm6 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0Zm-10 4a1 1 0 1 1 2 0 1 1 0 0 1-2 0Zm6 0a1 1 0 1 0-2 0 1 1 0 0 0 2 0Zm2 0a1 1 0 1 1 2 0 1 1 0 0 1-2 0Z"
-              clip-rule="evenodd"
+              clipRule="evenodd"
             />
           </svg>
 
@@ -80,7 +103,7 @@ export default function PreviewArticle({
 
       <br />
 
-      <div dangerouslySetInnerHTML={{ __html: content }} />
+      <div dangerouslySetInnerHTML={{ __html: processedContent }} />
       <br />
       <div className=" border-t border-gray-200 pt-2">
         {/* Categories Section */}

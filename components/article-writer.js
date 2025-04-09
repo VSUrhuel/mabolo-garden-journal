@@ -41,18 +41,29 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { createClient } from "@/utils/supabase/client";
 
-export default function ArticleWriter() {
-  const [title, setTitle] = useState("");
-  const [publishDate, setPublishDate] = useState("");
-  const [categories, setCategories] = useState("");
-  const [tags, setTags] = useState("");
+export default function ArticleWriter({
+  id: articleId = "",
+  title: initialTitle = "",
+  publishDate: initialPublishDate = "",
+  sdgParm: initialSdgParm = "",
+  tags: initialTags = "",
+  content: initialContent = "",
+  jsonContent: initialJsonContent = "",
+  imageUrl: initialImageUrl = null,
+}) {
+  const [id, setId] = useState(articleId);
+  const [title, setTitle] = useState(initialTitle);
+  const [publishDate, setPublishDate] = useState(initialPublishDate);
+  const [categories, setCategories] = useState(initialSdgParm);
+  const [tags, setTags] = useState(initialTags);
   const [fileInputKey, setFileInputKey] = useState(0);
   const [uploading, setUploading] = useState(false);
-  const [previewImage, setPreviewImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(initialImageUrl);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [imageUrl, setImageUrl] = useState(null);
-  const [editorContent, setEditorContent] = useState("");
+  const [imageUrl, setImageUrl] = useState(initialImageUrl);
+  const [editorContent, setEditorContent] = useState(initialContent);
   const [isEditorReady, setIsEditorReady] = useState(false);
 
   const editorRef = useRef({
@@ -64,6 +75,13 @@ export default function ArticleWriter() {
     restore: () => {},
     getEditor: () => null, // Added missing method
   });
+
+  useEffect(() => {
+    if (initialContent) {
+      setLocalStorageItem("editor-backup", initialContent);
+      setLocalStorageItem("editor-backup-json", initialJsonContent);
+    }
+  }, [initialContent, initialJsonContent]);
 
   // Fixed useEffect for auto-saving
   useEffect(() => {
@@ -92,11 +110,7 @@ export default function ArticleWriter() {
     setLocalStorageItem("editor-backup", content);
   };
 
-  const supabase = createClientComponentClient({
-    supabaseUrl: "https://gskbnsykaraahykxftrb.supabase.co",
-    supabaseKey:
-      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdza2Juc3lrYXJhYWh5a3hmdHJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE2MjczNzgsImV4cCI6MjA1NzIwMzM3OH0.tti14AbGrMF22KXIgUesjRB_9Bz1uNnBCeTuavPx5oc",
-  });
+  const supabase = createClient();
   const handleContentChange = (content) => {
     setEditorContent(content);
   };
@@ -175,7 +189,7 @@ export default function ArticleWriter() {
   const getContent = () => {
     try {
       const backupContent = getLocalStorageItem("editor-backup");
-      if (backupContent && typeof editorRef.current.restore === "function") {
+      if (backupContent && typeof editorRef.current?.restore === "function") {
         editorRef.current.restore(backupContent);
       }
 
@@ -193,7 +207,7 @@ export default function ArticleWriter() {
         json: null,
       };
     } catch (error) {
-      console.error("Error getting editor content:", error);
+      toast.error("Error getting editor content:", error);
       return {
         html: editorContent,
         json: null,
@@ -206,29 +220,57 @@ export default function ArticleWriter() {
     const content = editor?.getHTML() || getLocalStorageItem("editor-backup");
     const jsonContent =
       editor?.getJSON() || getLocalStorageItem("editor-backup-json");
+    const isEditingExisting = initialTitle || initialContent || initialImageUrl;
 
-    function generateInt8Id() {
-      // Create a 63-bit ID (safe for Postgres int8)
-      const timestamp = Date.now(); // 13 digits
-      const random = Math.floor(Math.random() * 10000); // 4 digits
-      return BigInt(`${timestamp}${random}`); // Combine to 17 digits
+    if (isEditingExisting) {
+      const { data, error } = await supabase
+        .from("article")
+        .update({
+          id: Number(articleId),
+          title: title,
+          content: content,
+          json_content: JSON.stringify(jsonContent),
+          modified_at: new Date(),
+          status: "draft",
+          published_date: publishDate || null,
+          categories: categories,
+          tags: tags.split(",").map((tag) => tag.trim()),
+          cover_image: imageUrl || null,
+        })
+        .eq("id", articleId)
+        .select();
+
+      if (error) {
+        toast.error(`Failed to update draft:  ${error.message}`);
+        return;
+      } else {
+        toast.success("Draft updated successfully!");
+      }
+    } else {
+      function generateInt8Id() {
+        // Create a 63-bit ID (safe for Postgres int8)
+        const timestamp = Date.now(); // 13 digits
+        const random = Math.floor(Math.random() * 10000); // 4 digits
+        return BigInt(`${timestamp}${random}`); // Combine to 17 digits
+      }
+
+      await supabase.from("article").insert([
+        {
+          id: Number(generateInt8Id()),
+          title: title,
+          content: content,
+          json_content: JSON.stringify(jsonContent),
+          created_at: new Date(),
+          modified_at: new Date(),
+          status: "draft",
+          published_date: publishDate || null,
+          categories: categories,
+          tags: tags.split(",").map((tag) => tag.trim()),
+          cover_image: imageUrl || null,
+        },
+      ]);
+      toast.success("Draft saved successfully!");
     }
-
-    await supabase.from("article").insert([
-      {
-        id: Number(generateInt8Id()),
-        title: title,
-        content: content,
-        json_content: JSON.stringify(jsonContent),
-        created_at: new Date(),
-        modified_at: new Date(),
-        status: "draft",
-        published_date: publishDate || null,
-        categories: categories,
-        tags: tags.split(",").map((tag) => tag.trim()),
-        cover_image: imageUrl || null,
-      },
-    ]);
   };
 
   const handleFuturePublish = async () => {
@@ -236,14 +278,6 @@ export default function ArticleWriter() {
     const content = editor?.getHTML() || getLocalStorageItem("editor-backup");
     const jsonContent =
       editor?.getJSON() || getLocalStorageItem("editor-backup-json");
-
-    function generateInt8Id() {
-      // Create a 63-bit ID (safe for Postgres int8)
-      const timestamp = Date.now(); // 13 digits
-      const random = Math.floor(Math.random() * 10000); // 4 digits
-      return BigInt(`${timestamp}${random}`); // Combine to 17 digits
-    }
-
     if (!content) {
       toast.error("Please write something before publishing.");
       return;
@@ -279,6 +313,13 @@ export default function ArticleWriter() {
       return;
     }
 
+    function generateInt8Id() {
+      // Create a 63-bit ID (safe for Postgres int8)
+      const timestamp = Date.now(); // 13 digits
+      const random = Math.floor(Math.random() * 10000); // 4 digits
+      return BigInt(`${timestamp}${random}`); // Combine to 17 digits
+    }
+
     await supabase.from("article").insert([
       {
         id: Number(generateInt8Id()),
@@ -307,6 +348,7 @@ export default function ArticleWriter() {
         }
       )}`
     );
+
     setTitle("");
     setEditorContent("");
     setCategories("");

@@ -36,7 +36,7 @@ export default function Header() {
                     transition-all duration-200 shadow-sm 
                     dark:shadow-green-900/10"
           >
-            Explore Resources
+            <Link href="/article-view">Explore Articles</Link>
           </button>
         </div>
       </div>

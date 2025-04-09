@@ -7,10 +7,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Link from "next/link";
 
-const FeaturedArticle = ({ key, article }) => {
-  const articleId = article.id;
-  const { content, title, image, tags, sdg, date, json } = article;
+const FeaturedArticle = ({ article }) => {
+  const { articleId, content, title, image, tags, sdg, date, json } = article;
   console.log(article);
   const convertDateToFormat = (dateString) => {
     const date = new Date(dateString);
@@ -97,14 +97,19 @@ const FeaturedArticle = ({ key, article }) => {
             <div className="flex flex-wrap gap-2 md:gap-4">
               {tags &&
                 tags.map((tag) => (
-                  <span className="px-2 py-1 text-[10px] xs:text-xs bg-blue-100 dark:bg-green-900 text-blue-800 dark:text-green-200 rounded-full">
+                  <span
+                    key={tag}
+                    className="px-2 py-1 text-[10px] xs:text-xs bg-blue-100 dark:bg-green-900 text-blue-800 dark:text-green-200 rounded-full"
+                  >
                     {tag.trim()}
                   </span>
                 ))}
             </div>
-
-            <button className="text-sm sm:text-base text-blue-600 dark:text-green-400 hover:text-blue-800 dark:hover:text-green-300 font-medium transition-colors flex items-center gap-1">
-              Read More
+            <Link
+              href={`/article-view/${articleId}`}
+              className="text-sm sm:text-base text-blue-600 dark:text-green-400 hover:text-blue-800 dark:hover:text-green-300 font-medium transition-colors flex items-center gap-1"
+            >
+              <span>Read More</span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 className="h-3 w-3 sm:h-4 sm:w-4"
@@ -119,7 +124,7 @@ const FeaturedArticle = ({ key, article }) => {
                   d="M9 5l7 7-7 7"
                 />
               </svg>
-            </button>
+            </Link>
           </div>
         </div>
       </CardFooter>

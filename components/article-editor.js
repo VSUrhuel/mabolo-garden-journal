@@ -92,7 +92,6 @@ const ArticleEditor = forwardRef((props, ref) => {
     },
     restore: (content) => {
       if (editor && !editor.isDestroyed) {
-        editor.commands.setContent(content || "");
       }
     },
   }));

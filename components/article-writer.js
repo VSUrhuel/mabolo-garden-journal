@@ -68,10 +68,7 @@ export default function ArticleWriter({
   const [isEditorReady, setIsEditorReady] = useState(false);
 
   const formatDateTimeLocal = (isoString) => {
-    const date = new Date(isoString);
-    const offset = date.getTimezoneOffset();
-    const localDate = new Date(date.getTime() - offset * 60 * 1000);
-    return localDate.toISOString().slice(0, 16);
+    return isoString.slice(0, 16);
   };
   const editorRef = useRef({
     editorInstance: null,

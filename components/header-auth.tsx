@@ -5,7 +5,7 @@ import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { createClient } from "@/utils/supabase/server";
 import { ThemeSwitcher } from "./theme-switcher";
-import { LogIn, LogOut } from "lucide-react";
+import { LogIn, LogOut, PenSquare } from "lucide-react";
 
 export default async function AuthButton() {
   const supabase = await createClient();
@@ -43,7 +43,9 @@ export default async function AuthButton() {
   }
   return user ? (
     <div className="flex items-center gap-4">
-      Hey, Admin!
+      <Link href="/journal" className="hover:opacity-75 transition-opacity">
+        <PenSquare className="h-5 w-5" />
+      </Link>
       <form action={signOutAction} className="flex gap-2">
         <ThemeSwitcher />
         <Button type="submit" variant={"outline"}>

@@ -27,13 +27,10 @@ import {
 import { toast } from "sonner";
 
 import { getLocalStorageItem, setLocalStorageItem } from "@/utils/storage";
+import { createClient } from "@/utils/supabase/client";
 
 // Initialize Supabase client
-const supabase = createClientComponentClient({
-  supabaseUrl: "https://gskbnsykaraahykxftrb.supabase.co",
-  supabaseKey:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdza2Juc3lrYXJhYWh5a3hmdHJiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDE2MjczNzgsImV4cCI6MjA1NzIwMzM3OH0.tti14AbGrMF22KXIgUesjRB_9Bz1uNnBCeTuavPx5oc",
-});
+const supabase = createClient();
 
 const ArticleEditor = forwardRef((props, ref) => {
   const [uploading, setUploading] = useState(false);

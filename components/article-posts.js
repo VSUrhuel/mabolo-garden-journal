@@ -205,8 +205,8 @@ export default function ArticlePost() {
                   : "cursor-pointer"
               }
             >
-              Prev
               <ChevronLeft className="h-4 w-4" />
+              Prev
             </Button>
           </PaginationItem>
 

@@ -87,7 +87,7 @@ export default function ArticleView({ params }) {
   }
 
   return (
-    <div>
+    <div className="px-2">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>

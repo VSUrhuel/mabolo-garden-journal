@@ -56,6 +56,7 @@ export default function ArticleWriter({
   const [id, setId] = useState(articleId);
   const [title, setTitle] = useState(initialTitle);
   const [publishDate, setPublishDate] = useState(initialPublishDate);
+
   const [categories, setCategories] = useState(initialSdgParm);
   const [tags, setTags] = useState(initialTags);
   const [fileInputKey, setFileInputKey] = useState(0);
@@ -66,6 +67,12 @@ export default function ArticleWriter({
   const [editorContent, setEditorContent] = useState(initialContent);
   const [isEditorReady, setIsEditorReady] = useState(false);
 
+  const formatDateTimeLocal = (isoString) => {
+    const date = new Date(isoString);
+    const offset = date.getTimezoneOffset();
+    const localDate = new Date(date.getTime() - offset * 60 * 1000);
+    return localDate.toISOString().slice(0, 16);
+  };
   const editorRef = useRef({
     editorInstance: null,
     getHTML: () => "",
@@ -75,6 +82,11 @@ export default function ArticleWriter({
     restore: () => {},
     getEditor: () => null, // Added missing method
   });
+
+  useEffect(() => {
+    const defaultDate = publishDate;
+    setPublishDate(formatDateTimeLocal(defaultDate));
+  }, []);
 
   useEffect(() => {
     if (initialContent) {
@@ -214,13 +226,12 @@ export default function ArticleWriter({
       };
     }
   };
-
+  const isEditingExisting = initialTitle || initialContent || initialImageUrl;
   const handleSaveDraft = async () => {
     const editor = editorRef.current?.getEditor();
     const content = editor?.getHTML() || getLocalStorageItem("editor-backup");
     const jsonContent =
       editor?.getJSON() || getLocalStorageItem("editor-backup-json");
-    const isEditingExisting = initialTitle || initialContent || initialImageUrl;
 
     if (isEditingExisting) {
       const { data, error } = await supabase
@@ -313,42 +324,77 @@ export default function ArticleWriter({
       return;
     }
 
-    function generateInt8Id() {
-      // Create a 63-bit ID (safe for Postgres int8)
-      const timestamp = Date.now(); // 13 digits
-      const random = Math.floor(Math.random() * 10000); // 4 digits
-      return BigInt(`${timestamp}${random}`); // Combine to 17 digits
-    }
+    if (isEditingExisting) {
+      const { data, error } = await supabase
+        .from("article")
+        .update({
+          id: Number(articleId),
+          title: title,
+          content: content,
+          json_content: JSON.stringify(jsonContent),
+          modified_at: new Date(),
+          status: "published",
+          published_date: publishDate || null,
+          categories: categories,
+          tags: tags.split(",").map((tag) => tag.trim()),
+          cover_image: imageUrl || null,
+        })
+        .eq("id", articleId)
+        .select();
 
-    await supabase.from("article").insert([
-      {
-        id: Number(generateInt8Id()),
-        title: title,
-        content: content,
-        json_content: JSON.stringify(jsonContent),
-        created_at: new Date(),
-        modified_at: new Date(),
-        status: "published",
-        published_date: publishDate || null,
-        categories: categories,
-        tags: tags.split(",").map((tag) => tag.trim()),
-        cover_image: imageUrl || null,
-      },
-    ]);
+      if (error) {
+        toast.error(`Failed to update draft:  ${error.message}`);
+        return;
+      } else {
+        toast.success(
+          `Updates wwill be publish on on ${new Date(
+            publishDate
+          ).toLocaleString("en-US", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}!`
+        );
+      }
+    } else {
+      function generateInt8Id() {
+        // Create a 63-bit ID (safe for Postgres int8)
+        const timestamp = Date.now(); // 13 digits
+        const random = Math.floor(Math.random() * 10000); // 4 digits
+        return BigInt(`${timestamp}${random}`); // Combine to 17 digits
+      }
 
-    toast.success(
-      `Article will be published on ${new Date(publishDate).toLocaleString(
-        "en-US",
+      await supabase.from("article").insert([
         {
-          year: "numeric",
-          month: "2-digit",
-          day: "2-digit",
-          hour: "2-digit",
-          minute: "2-digit",
-        }
-      )}`
-    );
+          id: Number(generateInt8Id()),
+          title: title,
+          content: content,
+          json_content: JSON.stringify(jsonContent),
+          created_at: new Date(),
+          modified_at: new Date(),
+          status: "published",
+          published_date: publishDate || null,
+          categories: categories,
+          tags: tags.split(",").map((tag) => tag.trim()),
+          cover_image: imageUrl || null,
+        },
+      ]);
 
+      toast.success(
+        `Article will be published on ${new Date(publishDate).toLocaleString(
+          "en-US",
+          {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+          }
+        )}`
+      );
+    }
     setTitle("");
     setEditorContent("");
     setCategories("");
@@ -366,14 +412,6 @@ export default function ArticleWriter({
     const content = editor?.getHTML() || getLocalStorageItem("editor-backup");
     const jsonContent =
       editor?.getJSON() || getLocalStorageItem("editor-backup-json");
-
-    function generateInt8Id() {
-      // Create a 63-bit ID (safe for Postgres int8)
-      const timestamp = Date.now(); // 13 digits
-      const random = Math.floor(Math.random() * 10000); // 4 digits
-      return BigInt(`${timestamp}${random}`); // Combine to 17 digits
-    }
-
     if (!content) {
       toast.error("Please write something before publishing.");
       return;
@@ -399,23 +437,56 @@ export default function ArticleWriter({
       return;
     }
 
-    await supabase.from("article").insert([
-      {
-        id: Number(generateInt8Id()),
-        title: title,
-        content: content,
-        json_content: JSON.stringify(jsonContent),
-        created_at: new Date(),
-        modified_at: new Date(),
-        status: "published",
-        published_date: new Date(),
-        categories: categories,
-        tags: tags.split(",").map((tag) => tag.trim()),
-        cover_image: imageUrl || null,
-      },
-    ]);
+    if (isEditingExisting) {
+      const { data, error } = await supabase
+        .from("article")
+        .update({
+          id: Number(articleId),
+          title: title,
+          content: content,
+          json_content: JSON.stringify(jsonContent),
+          modified_at: new Date(),
+          status: "published",
+          published_date: new Date(),
+          categories: categories,
+          tags: tags.split(",").map((tag) => tag.trim()),
+          cover_image: imageUrl || null,
+        })
+        .eq("id", articleId)
+        .select();
 
-    toast.success("Article published successfully!");
+      if (error) {
+        toast.error(`Failed to update draft:  ${error.message}`);
+        return;
+      } else {
+        toast.success("Updates were succesfully published!");
+      }
+    } else {
+      function generateInt8Id() {
+        // Create a 63-bit ID (safe for Postgres int8)
+        const timestamp = Date.now(); // 13 digits
+        const random = Math.floor(Math.random() * 10000); // 4 digits
+        return BigInt(`${timestamp}${random}`); // Combine to 17 digits
+      }
+
+      await supabase.from("article").insert([
+        {
+          id: Number(generateInt8Id()),
+          title: title,
+          content: content,
+          json_content: JSON.stringify(jsonContent),
+          created_at: new Date(),
+          modified_at: new Date(),
+          status: "published",
+          published_date: new Date(),
+          categories: categories,
+          tags: tags.split(",").map((tag) => tag.trim()),
+          cover_image: imageUrl || null,
+        },
+      ]);
+
+      toast.success("Article published successfully!");
+    }
     setTitle("");
     setEditorContent("");
     setCategories("");

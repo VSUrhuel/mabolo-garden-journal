@@ -123,8 +123,8 @@ export default function ViewArticles() {
   }
 
   return (
-    <div>
-      <div className="flex items-center justify-between mb-2">
+    <div className="">
+      <div className=" flex items-center justify-between mb-2">
         {/* Breadcrumb Navigation */}
         <Breadcrumb>
           <BreadcrumbList>

@@ -27,7 +27,7 @@ const ArticleViewCard = ({ article }) => {
   };
   const textContent = convertHtmlToText(content);
   return (
-    <Card className="grid md:grid-cols-3 grid-cols-1 space-x-2 gap-2 mb-6 bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all duration-300 ease-in-out overflow-hidden group">
+    <Card className="grid md:grid-cols-3  grid-cols-1 space-x-2 gap-2 mb-6 bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all duration-300 ease-in-out overflow-hidden group">
       <div className="col-span-1 md:col-span-2 overflow-hidden rounded-l-lg group">
         <img
           src={image}

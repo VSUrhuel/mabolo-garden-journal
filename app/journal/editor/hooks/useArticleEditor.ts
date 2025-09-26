@@ -20,6 +20,7 @@ export default function useArticleEditor(article : any) {
   );
   const [isEditorReady, setIsEditorReady] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [author, setAuthor] = useState(article?.author || "Mabolo Admin");
 
   type EditorRefType = {
     getHTML: () => string;
@@ -48,7 +49,7 @@ export default function useArticleEditor(article : any) {
     return () => clearInterval(interval);
   }, []);
 
-  const handleContentChange = (content : any) => {
+  const handleContentChange = (content: any) => {
     setEditorContent(content);
   };
 
@@ -114,6 +115,8 @@ export default function useArticleEditor(article : any) {
     setEditorContent,
     imageUrl,
     setImageUrl,
+    author,
+    setAuthor,
     previewImage,
     setPreviewImage,
     isEditorReady,
@@ -125,6 +128,6 @@ export default function useArticleEditor(article : any) {
     handlePreview,
     getContent,
     handleSaveDraft,
-    handlePublish
+    handlePublish,
   };
 }

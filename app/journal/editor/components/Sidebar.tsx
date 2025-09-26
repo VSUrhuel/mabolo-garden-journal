@@ -40,7 +40,10 @@ export default function Sidebar({ article }: { article: any }) {
     setTags,
     previewImage,
     setPreviewImage,
+    setImageUrl,
     uploading,
+    author, 
+    setAuthor
   } = useArticleEditor(article);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,6 +53,8 @@ export default function Sidebar({ article }: { article: any }) {
     const imageUrl = await uploadImage(file);
     if (imageUrl) {
       setPreviewImage(imageUrl);
+      setImageUrl(imageUrl);
+      article.cover_image = imageUrl;
     }
   };
 
@@ -61,6 +66,15 @@ export default function Sidebar({ article }: { article: any }) {
           <CardDescription>Add categories and tags</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="space-y-2 md:w-full">
+            <Label htmlFor="author">Author</Label>
+            <Input
+              id="author"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              placeholder="Enter author's name..."
+            />
+          </div>
           <div className="space-y-2 grid">
             <Label>SDG Categories</Label>
             <Popover>
@@ -233,7 +247,6 @@ export default function Sidebar({ article }: { article: any }) {
           </div>
         </CardContent>
       </Card>
-      
     </div>
   );
 }

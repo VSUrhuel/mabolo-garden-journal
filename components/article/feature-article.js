@@ -42,7 +42,7 @@ const FeaturedArticle = ({ article }) => {
       {/* Card Header */}
       <CardHeader className="px-4 pt-4 pb-2 space-y-1">
         <div className="flex items-center gap-2 text-xs sm:text-sm md:text-md text-gray-500 dark:text-gray-400">
-          <span>Mabolo Admin</span>
+          <span>{article.author ?? "Mabolo Admin"}</span>
           <span>•</span>
           <time>{formattedDate}</time>
         </div>

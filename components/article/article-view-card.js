@@ -54,7 +54,10 @@ const ArticleViewCard = ({ article }) => {
           <div className="flex flex-wrap gap-2 md:gap-2">
             {tags &&
               tags.map((tag) => (
-                <span className="px-2 py-1 text-[10px] xs:text-xs bg-blue-100 dark:bg-green-900 text-blue-800 dark:text-green-200 rounded-full">
+                <span
+                  key={tag}
+                  className="px-2 py-1 text-[10px] xs:text-xs bg-blue-100 dark:bg-green-900 text-blue-800 dark:text-green-200 rounded-full"
+                >
                   {tag.trim()}
                 </span>
               ))}

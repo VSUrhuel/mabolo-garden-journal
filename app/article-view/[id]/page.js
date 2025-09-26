@@ -39,7 +39,8 @@ export default function ArticleView({ params }) {
   const [featuredArticle, setFeaturedArticle] = useState(null);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const { id } = params;
+  const unwrappedParams = React.use(params);
+  const id = unwrappedParams.id;
   const supabase = createClient();
   const router = useRouter();
 

@@ -43,7 +43,10 @@ export default async function AuthButton() {
   }
   return user ? (
     <div className="flex items-center gap-4">
-      <Link href="/journal" className="hover:opacity-75 transition-opacity">
+      <Link
+        href="/journal/editor"
+        className="hover:opacity-75 transition-opacity"
+      >
         <PenSquare className="h-5 w-5" />
       </Link>
       <form action={signOutAction} className="flex gap-2">

@@ -119,6 +119,7 @@ export default function ArticlePost() {
           {regularArticles &&
             regularArticles.map((article) => (
               <ArticleCard
+                key={article.id}
                 article={{
                   articleId: article.id,
                   content: article.content,

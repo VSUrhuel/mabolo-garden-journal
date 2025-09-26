@@ -43,7 +43,8 @@ export default function Sidebar({ article }: { article: any }) {
     setImageUrl,
     uploading,
     author, 
-    setAuthor
+    setAuthor,
+    handleAuthorChange,
   } = useArticleEditor(article);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +72,7 @@ export default function Sidebar({ article }: { article: any }) {
             <Input
               id="author"
               value={author}
-              onChange={(e) => setAuthor(e.target.value)}
+              onChange={handleAuthorChange}
               placeholder="Enter author's name..."
             />
           </div>

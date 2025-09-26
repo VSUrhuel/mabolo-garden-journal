@@ -49,7 +49,6 @@ export default function DraftArticle() {
       .eq("status", "draft")
       .order("created_at", { ascending: false })
       .range(from, to);
-
     if (error) {
       toast.error(`Error fetching draft article details: ${error.message}`);
       setLoading(false);
@@ -142,7 +141,7 @@ export default function DraftArticle() {
       {articles && articles.length > 0
         ? articles.map((article) => (
             <ArticleDraftCard
-              key={article.id}
+              key={article.title}
               article={{
                 articleId: article.id,
                 content: article.content,
@@ -152,6 +151,7 @@ export default function DraftArticle() {
                 sdg: article.categories,
                 date: article.published_date,
                 json: article.json_content,
+                author: article.author,
               }}
             />
           ))
@@ -231,7 +231,7 @@ export default function DraftArticle() {
                 setCurrentPage((prev) => Math.max(prev + 1, totalPages))
               }
               className={
-                currentPage === totalPages
+                currentPage === totalPages || currentPage === 0
                   ? "pointer-events-none opacity-50"
                   : "cursor-pointer"
               }

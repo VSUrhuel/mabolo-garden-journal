@@ -110,6 +110,7 @@ export default function ArticlePost() {
                 sdg: featuredArticle.categories,
                 date: featuredArticle.published_date,
                 json: featuredArticle.json_content,
+                author: featuredArticle.author,
               }}
             />
           )}
@@ -129,6 +130,7 @@ export default function ArticlePost() {
                   sdg: article.categories,
                   date: article.published_date,
                   json: article.json_content,
+                  author: article.author,
                 }}
               />
             ))}
@@ -208,7 +210,7 @@ export default function ArticlePost() {
                 setCurrentPage((prev) => Math.max(prev + 1, totalPages))
               }
               className={
-                currentPage === totalPages
+                currentPage === totalPages || totalPages === 0
                   ? "pointer-events-none opacity-50"
                   : "cursor-pointer"
               }

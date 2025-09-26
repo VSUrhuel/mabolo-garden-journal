@@ -5,10 +5,13 @@ import {
   forwardRef,
   useEffect,
   useImperativeHandle,
+  useRef,
   useState,
 } from "react";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Image from "@tiptap/extension-image";
 import { CustomImage } from "@/components/article/custom-image";
 import { BubbleMenu } from "@tiptap/react";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -16,11 +19,13 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+
 import { getLocalStorageItem, setLocalStorageItem } from "@/utils/storage";
 import { createClient } from "@/utils/supabase/client";
 
@@ -54,8 +59,8 @@ const ArticleEditor = forwardRef((props, ref) => {
         const content = editor?.getHTML() || "";
         setLocalStorageItem("editor-backup", content);
         setLocalStorageItem("editor-backup-json", editor?.getJSON() || "");
-        console.log(getLocalStorageItem("editor-backup"));
-        setPendingUpdate(content); // Queue the state update
+        setPendingUpdate(content);
+        props.onContentChange?.(content);
       } catch (error) {
         console.error("Destruction save failed:", error);
       }
@@ -64,10 +69,10 @@ const ArticleEditor = forwardRef((props, ref) => {
 
   // Handle queued updates after render
   useEffect(() => {
-    if (pendingUpdate !== null) {
-      props.onContentChange?.(pendingUpdate);
-      setPendingUpdate(null);
-    }
+    props.onContentChange?.(
+      getLocalStorageItem("editor-backup") || pendingUpdate
+    );
+    setPendingUpdate(null);
   }, [pendingUpdate]);
 
   useImperativeHandle(ref, () => ({
@@ -157,7 +162,6 @@ const ArticleEditor = forwardRef((props, ref) => {
       setFileInputKey((prev) => prev + 1);
       setPreviewImage(null);
     } catch (error) {
-      console.log("Upload error:", error);
       toast.error("Failed to upload image");
     } finally {
       setUploading(false);

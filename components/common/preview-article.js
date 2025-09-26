@@ -8,6 +8,7 @@ export default function PreviewArticle({
   content,
   jsonContent,
   imageUrl,
+  author,
 }) {
   const [darkMode, setDarkMode] = useState(
     typeof window !== "undefined" &&
@@ -66,8 +67,7 @@ export default function PreviewArticle({
 
           <span className="dark:text-100">Written by: </span>
           <span className="sm:ml-2 text-gray-700 dark:text-gray-100 font-semibold">
-            {" "}
-            Mabolo Admin
+            {author ?? "Mabolo Admin"}
           </span>
         </div>
         <div className="flex items-center mr-0 ml-0 space-x-2 md:space-y-0 ">

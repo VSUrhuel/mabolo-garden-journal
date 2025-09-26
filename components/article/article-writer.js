@@ -544,14 +544,11 @@ export default function ArticleWriter({
         data: { publicUrl },
         errorUpload,
       } = supabase.storage.from("journal-cover").getPublicUrl(filePath);
-      console.log("Error upload", errorUpload);
       setImageUrl(publicUrl);
-      console.log("Image URL:", publicUrl);
       toast.success("Image uploaded successfully");
       // Reset the file input and preview
       setFileInputKey((prev) => prev + 1);
     } catch (error) {
-      console.log("Upload error:", error);
       toast.error("Failed to upload image");
     } finally {
       setUploading(false);

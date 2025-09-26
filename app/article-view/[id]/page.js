@@ -182,6 +182,7 @@ export default function ArticleView({ params }) {
           content={featuredArticle.content}
           jsonContent={featuredArticle.json_content}
           imageUrl={featuredArticle.cover_image}
+          author={featuredArticle.author}
         />
       </div>
     </div>

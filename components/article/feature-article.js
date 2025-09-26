@@ -10,8 +10,8 @@ import {
 import Link from "next/link";
 
 const FeaturedArticle = ({ article }) => {
-  const { articleId, content, title, image, tags, sdg, date, json } = article;
-  console.log(article);
+  const { articleId, content, title, image, tags, sdg, date, json, author } =
+    article;
   const convertDateToFormat = (dateString) => {
     const date = new Date(dateString);
     const day = date.getDate();
@@ -33,7 +33,7 @@ const FeaturedArticle = ({ article }) => {
       {/* Image with responsive height */}
       <div className="overflow-hidden rounded-t-lg group">
         <img
-          src={image}
+          src={image ?? "/profile.jpg"}
           alt="Featured Content"
           className="w-full h-48 md:h-64 lg:h-80 rounded-t-md object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
         />
@@ -42,7 +42,7 @@ const FeaturedArticle = ({ article }) => {
       {/* Card Header */}
       <CardHeader className="px-4 pt-4 pb-2 space-y-1">
         <div className="flex items-center gap-2 text-xs sm:text-sm md:text-md text-gray-500 dark:text-gray-400">
-          <span>{article.author ?? "Mabolo Admin"}</span>
+          <span>{author ?? "Mabolo Admin"}</span>
           <span>•</span>
           <time>{formattedDate}</time>
         </div>

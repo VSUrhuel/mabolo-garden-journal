@@ -1,16 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { getLocalStorageItem, setLocalStorageItem } from "@/utils/storage";
 import { toast } from "sonner";
-import {
-  saveDraft,
-  publishArticle,
-} from "../services/articleService";
+import { saveDraft, publishArticle } from "../services/articleService";
 import { formatDateTimeLocal } from "../utils/helper";
 
-export default function useArticleEditor(article : any) {
+export default function useArticleEditor(article: any) {
   const [title, setTitle] = useState(article?.title || "");
-  const [publishDate, setPublishDate] = useState( ""
-  );
+  const [publishDate, setPublishDate] = useState("");
   const [categories, setCategories] = useState(article?.categories || []);
   const [tags, setTags] = useState(article?.tags?.join(", ") || "");
   const [editorContent, setEditorContent] = useState(article?.content || "");
@@ -31,12 +27,18 @@ export default function useArticleEditor(article : any) {
   const editorRef = useRef<EditorRefType | null>(null);
 
   useEffect(() => {
-    const backup = getLocalStorageItem("editor-backup");
-    if (backup) {
-      setEditorContent(backup);
+    if (article) {
+      setTitle(article.title || "");
+      setCategories(article.categories || []);
+      setTags(article.tags?.join(", ") || "");
+      setImageUrl(article.cover_image || null);
+      setPreviewImage(article.cover_image || null);
+      setAuthor(article.author || "Mabolo Admin");
+      setLocalStorageItem("article-author", article.author || "Mabolo Admin");
     }
-  }, []);
+  }, [article]);
 
+  // Backup content to local storage periodically
   useEffect(() => {
     const interval = setInterval(() => {
       if (editorRef.current?.isAlive) {
@@ -49,20 +51,7 @@ export default function useArticleEditor(article : any) {
     return () => clearInterval(interval);
   }, []);
 
-  const handleContentChange = (content: any) => {
-    setEditorContent(content);
-  };
-
-  const handlePreview = () => {
-    const content = editorRef.current?.getHTML();
-    if (!content) {
-      toast.error("Please write something before previewing.");
-      return;
-    }
-    setEditorContent(content);
-  };
-
-  const getContent = () => {
+  const getContent = useCallback(() => {
     if (editorRef.current) {
       return {
         html: editorRef.current.getHTML(),
@@ -70,9 +59,9 @@ export default function useArticleEditor(article : any) {
       };
     }
     return { html: editorContent, json: null };
-  };
+  }, [editorContent]);
 
-  const handleSaveDraft = async () => {
+  const handleSaveDraft = useCallback(async () => {
     const { html, json } = getContent();
     const articleData = {
       title,
@@ -82,12 +71,13 @@ export default function useArticleEditor(article : any) {
       categories,
       tags: tags.split(",").map((t: string) => t.trim()),
       cover_image: imageUrl,
+      author: getLocalStorageItem("article-author"), // This now correctly uses the latest author state
     };
     await saveDraft(articleData, article?.id);
-    history.back();
-  };
+    window.location.href = "/draft-view";
+  }, [author, title, categories, tags, imageUrl, article?.id, getContent]);
 
-  const handlePublish = async () => {
+  const handlePublish = useCallback(async () => {
     const { html, json } = getContent();
     const articleData = {
       title,
@@ -97,10 +87,33 @@ export default function useArticleEditor(article : any) {
       categories,
       tags: tags.split(",").map((t: string) => t.trim()),
       cover_image: imageUrl,
+      author: getLocalStorageItem("article-author"), // This also uses the latest author state
     };
-    setPublishDate(formatDateTimeLocal(new Date().toISOString()));
     await publishArticle(articleData, article?.id);
     history.back();
+  }, [author, title, categories, tags, imageUrl, article?.id, getContent]);
+
+  const handleAuthorChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setAuthor(e.target.value);
+      setLocalStorageItem("article-author", e.target.value);
+    },
+    [] // setAuthor is stable and doesn't need to be in dependencies
+  );
+
+  const handleContentChange = (content: any) => {
+    setEditorContent(content);
+  };
+  const handlePreview = () => {
+    const content =
+      editorRef.current?.getHTML() ||
+      article?.content ||
+      getLocalStorageItem("editor-backup");
+    if (!content) {
+      toast.error("Please write something before previewing.");
+      return;
+    }
+    setEditorContent(content);
   };
 
   return {
@@ -117,6 +130,7 @@ export default function useArticleEditor(article : any) {
     setImageUrl,
     author,
     setAuthor,
+    handleAuthorChange,
     previewImage,
     setPreviewImage,
     isEditorReady,

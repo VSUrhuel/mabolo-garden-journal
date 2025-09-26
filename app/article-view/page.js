@@ -153,6 +153,7 @@ export default function ViewArticles() {
                 sdg: article.categories,
                 date: article.published_date,
                 json: article.json_content,
+                author: article.author,
               }}
             />
           ))

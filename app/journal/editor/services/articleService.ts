@@ -8,7 +8,7 @@ export const saveDraft = async (articleData : any, articleId = null) => {
   if (articleId) {
     const { error } = await supabase
       .from("article")
-      .update({ ...articleData, status: "draft", modified_at: new Date(), published_date: null })
+      .update({ ...articleData, status: "draft", modified_at: new Date(), published_date: null, author: articleData.author ?? "Mabolo Admin" })
       .eq("id", articleId);
     if (error) {
       toast.error(`Failed to update draft: ${error.message}`);
@@ -24,6 +24,7 @@ export const saveDraft = async (articleData : any, articleId = null) => {
         published_date: null,
         created_at: new Date(),
         modified_at: new Date(),
+        author: articleData.author ?? "Mabolo Admin",
       },
     ]);
     if (error) {
@@ -46,11 +47,11 @@ export const publishArticle = async (articleData: any, articleId = null) => {
         author: articleData.author ?? "Mabolo Admin",
       })
       .eq("id", articleId);
-    if (error) {
-      toast.error(`Failed to publish article: ${error.message}`);
-    } else {
-      toast.success("Article published successfully!");
-    }
+     if (error) {
+       toast.error(`Failed to publish article: ${error.message}`);
+     } else {
+       toast.success("Article updated successfully!");
+     }
   } else {
     const { error } = await supabase.from("article").insert([
       {

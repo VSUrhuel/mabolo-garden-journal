@@ -7,8 +7,9 @@ import PreviewArticle from "@/components/common/preview-article";
 import useArticleEditor from "../hooks/useArticleEditor";
 import Sidebar from "./Sidebar";
 import { Button } from "@/components/ui/button"; // Import the Button component
+import { getLocalStorageItem } from "@/utils/storage";
 
-export default function ArticleEditorForm({ article }: { article: any }) {
+export default function ArticleEditorForm({ article }) {
   const {
     title,
     setTitle,
@@ -17,6 +18,8 @@ export default function ArticleEditorForm({ article }: { article: any }) {
     tags,
     editorContent,
     imageUrl,
+    author,
+    setAuthor,
     editorRef,
     isEditorReady,
     handleContentChange,
@@ -25,7 +28,6 @@ export default function ArticleEditorForm({ article }: { article: any }) {
     handleSaveDraft, // Get the save draft handler
     handlePublish, // Get the publish handler
   } = useArticleEditor(article);
-
   return (
     <main className="container mx-auto py-6 px-4">
       <div className="flex justify-between items-center mb-6">
@@ -40,10 +42,16 @@ export default function ArticleEditorForm({ article }: { article: any }) {
           </p>
         </div>
         <div className="flex gap-4">
-          <Button variant="outline" disabled={title.trim() === ""} onClick={handleSaveDraft}>
+          <Button
+            variant="outline"
+            disabled={title.trim() === ""}
+            onClick={handleSaveDraft}
+          >
             Save Draft
           </Button>
-          <Button disabled={title.trim() === ""} onClick={handlePublish}>Publish</Button>
+          <Button disabled={title.trim() === ""} onClick={handlePublish}>
+            {article ? "Update Article" : "Publish Article"}
+          </Button>
         </div>
       </div>
       <div className="grid gap-6 md:grid-cols-3">
@@ -72,6 +80,9 @@ export default function ArticleEditorForm({ article }: { article: any }) {
                 <CardContent className="pt-6 grid ">
                   <ArticleEditor
                     ref={editorRef}
+                    initialContent={editorContent}
+                    onContentChange={handleContentChange}
+                    onReady={() => isEditorReady}
                   />
                 </CardContent>
               </Card>
@@ -81,29 +92,24 @@ export default function ArticleEditorForm({ article }: { article: any }) {
               <Card>
                 <CardContent className="pt-6 prose max-w-none">
                   {(() => {
-                    const { html, json } = getContent();
+                    const { html, json } =
+                      getContent() || getLocalStorageItem("editor-backup").content || {};
 
-                    if (html) {
+                    if (html ) {
                       return (
                         <PreviewArticle
                           title={title}
                           publishDate={publishDate}
                           sdgParm={categories}
                           tags={tags}
-                          content={html}
+                          content={getLocalStorageItem("editor-backup").content || html}
                           jsonContent={json}
                           imageUrl={imageUrl}
+                          author={getLocalStorageItem("article-author") || author}
                         />
                       );
                     }
 
-                    return (
-                      <div className="text-gray-500 italic">
-                        {isEditorReady
-                          ? "Start writing to see preview"
-                          : "Editor is loading... Please wait"}
-                      </div>
-                    );
                   })()}
                 </CardContent>
               </Card>

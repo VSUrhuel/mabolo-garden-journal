@@ -10,8 +10,8 @@ import {
 import Link from "next/link";
 
 const ArticleViewCard = ({ article }) => {
-  const { articleId, content, title, image, tags, sdg, date, json } = article;
-  console.log(article);
+  const { articleId, content, title, image, tags, sdg, date, json, author } =
+    article;
   const convertDateToFormat = (dateString) => {
     const date = new Date(dateString);
     const day = date.getDate();
@@ -30,14 +30,14 @@ const ArticleViewCard = ({ article }) => {
     <Card className="grid md:grid-cols-3  grid-cols-1 space-x-2 gap-2 mb-6 bg-white dark:bg-gray-800 shadow-md hover:shadow-lg transition-all duration-300 ease-in-out overflow-hidden group">
       <div className="col-span-1 md:col-span-2 overflow-hidden rounded-l-lg group">
         <img
-          src={image}
+          src={image ?? "/profile.jpg"}
           className="w-full md:h-60 object-cover rounded-t-md transition-transform duration-500 ease-in-out group-hover:scale-110"
         ></img>
       </div>
       <div>
         <CardHeader className="px-4 pt-4 pb-2 space-y-1">
           <div className="flex items-center gap-2 text-xs sm:text-sm md:text-md text-gray-500 dark:text-gray-400">
-            <span>Mabolo Admin</span>
+            <span>{author ?? "Mabolo Admin"}</span>
             <span>•</span>
             <time>{formattedDate}</time>
           </div>

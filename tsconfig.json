@@ -28,7 +28,8 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "components/article/article-editor.js"
+    "components/article/article-editor.js",
+    "app/journal/editor/components/ArticleEditorForm.jsx"
   ],
   "exclude": ["node_modules"]
 }

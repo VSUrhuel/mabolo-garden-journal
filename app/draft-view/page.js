@@ -10,7 +10,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import PreviewArticle from "@/components/preview-article";
 import {
   Pagination,
   PaginationContent,
@@ -24,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import Link from "next/link";
-import ArticleDraftCard from "@/components/article-draft-card";
+import ArticleDraftCard from "@/components/article/article-draft-card";
 const ITEMS_PER_PAGE = 5;
 
 export default function DraftArticle() {

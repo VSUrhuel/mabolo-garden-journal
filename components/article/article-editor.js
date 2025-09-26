@@ -5,27 +5,22 @@ import {
   forwardRef,
   useEffect,
   useImperativeHandle,
-  useRef,
   useState,
 } from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Image from "@tiptap/extension-image";
-import { CustomImage } from "@/components/custom-image";
+import { CustomImage } from "@/components/article/custom-image";
 import { BubbleMenu } from "@tiptap/react";
 import Placeholder from "@tiptap/extension-placeholder";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
-
 import { getLocalStorageItem, setLocalStorageItem } from "@/utils/storage";
 import { createClient } from "@/utils/supabase/client";
 

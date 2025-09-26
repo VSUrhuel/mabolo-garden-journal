@@ -1,16 +1,7 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ArticleCard from "./article-card";
-import Image from "next/image";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import FeaturedArticle from "@/components/feature-article";
+import FeaturedArticle from "./feature-article";
 import {
   Pagination,
   PaginationContent,
@@ -22,9 +13,9 @@ import {
 } from "@/components/ui/pagination";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
-import { Skeleton } from "./ui/skeleton";
+import { Skeleton } from "../ui/skeleton";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 
 const ITEMS_PER_PAGE = 3;
 

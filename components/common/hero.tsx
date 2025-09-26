@@ -25,7 +25,7 @@ export default function Header() {
                     transition-all duration-200 shadow-md 
                     dark:shadow-green-900/30"
           >
-            <Link href="/journal">Start Journaling</Link>
+            <Link href="/journal/editor">Start Journaling</Link>
           </button>
 
           {/* Secondary Button (Dark Mode) */}

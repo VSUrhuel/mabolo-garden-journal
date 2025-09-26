@@ -11,7 +11,6 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import PreviewArticle from "@/components/preview-article";
 import {
   Pagination,
   PaginationContent,
@@ -23,16 +22,8 @@ import {
 } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import Link from "next/link";
-import ArticleViewCard from "@/components/article-view-card";
+import ArticleViewCard from "@/components/article/article-view-card";
 
 const ITEMS_PER_PAGE = 5;
 
@@ -208,7 +199,7 @@ export default function ViewArticles() {
                 setCurrentPage((prev) => Math.max(prev + 1, totalPages))
               }
               className={
-                currentPage === totalPages
+                currentPage === totalPages || currentPage === 0
                   ? "pointer-events-none opacity-50"
                   : "cursor-pointer"
               }

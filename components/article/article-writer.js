@@ -7,24 +7,20 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import ArticleEditor from "@/components/article-editor.js";
+import ArticleEditor from "@/components/article/article-editor";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import PreviewArticle from "@/components/preview-article.js";
+import PreviewArticle from "@/components/common/preview-article";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
   TooltipProvider,
 } from "@/components/ui/tooltip";
-import { Separator } from "@/components/ui/separator";
 import { useEffect, useRef, useState } from "react";
 import { getLocalStorageItem, setLocalStorageItem } from "@/utils/storage";
-import { get } from "http";
 import { Check, ChevronsUpDown, Save, Upload, X } from "lucide-react";
 import {
   Popover,
@@ -107,11 +103,8 @@ export default function ArticleWriter({
   }, []);
 
   const handlePreview = () => {
-    console.log("Preview clicked");
     const content = getLocalStorageItem("editor-backup");
-    console.log("Content:", content);
     if (!content) {
-      console.log("please writging frite");
       toast.error("Please write something before previewing.");
       return;
     }

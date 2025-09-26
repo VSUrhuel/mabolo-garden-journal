@@ -1,7 +1,5 @@
-import Hero from "@/components/hero";
-import SignUpUserSteps from "@/components/tutorial/sign-up-user-steps";
-
-import ArticlePost from "@/components/article-posts";
+import Hero from "@/components/common/hero";
+import ArticlePost from "@/components/article/article-posts";
 
 export default async function Home() {
   return (

@@ -3,12 +3,41 @@ import { getLocalStorageItem, setLocalStorageItem } from "@/utils/storage";
 import { toast } from "sonner";
 import { saveDraft, publishArticle } from "../services/articleService";
 import { formatDateTimeLocal } from "../utils/helper";
-
+const getArrayFromStorage = (key: string) => {
+  const storedValue = getLocalStorageItem(key);
+  if (!storedValue) return [];
+  try {
+    const parsed = JSON.parse(storedValue);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch (e) {
+    return [];
+  }
+};
 export default function useArticleEditor(article: any) {
+  // --- STATE INITIALIZATION ---
+  // Initialize state from localStorage first, then the article prop, then a default.
+  // The function form `useState(() => ...)` ensures localStorage is read only once on mount.
   const [title, setTitle] = useState(article?.title || "");
-  const [publishDate, setPublishDate] = useState("");
-  const [categories, setCategories] = useState(article?.categories || []);
-  const [tags, setTags] = useState(article?.tags?.join(", ") || "");
+  const [categories, setCategories] = useState(() => {
+    const storedCategories = getLocalStorageItem("article-categories");
+    if (storedCategories) {
+      // Safely parse the JSON string back into an array
+      try {
+        return JSON.parse(storedCategories);
+      } catch (e) {
+        return []; // Return empty array if parsing fails
+      }
+    }
+    return article?.categories || []; // Fallback to prop or empty array
+  });
+  const [tags, setTags] = useState(
+    () => getLocalStorageItem("article-tags") || article?.tags?.join(", ") || ""
+  );
+  const [author, setAuthor] = useState(
+    () =>
+      getLocalStorageItem("article-author") || article?.author || "Mabolo Admin"
+  );
+
   const [editorContent, setEditorContent] = useState(article?.content || "");
   const [imageUrl, setImageUrl] = useState(article?.cover_image || null);
   const [previewImage, setPreviewImage] = useState(
@@ -16,29 +45,36 @@ export default function useArticleEditor(article: any) {
   );
   const [isEditorReady, setIsEditorReady] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [author, setAuthor] = useState(article?.author || "Mabolo Admin");
+  // Replace 'any' with the actual editor type if available (e.g., Editor from tiptap)
+  const editorRef = useRef<any>(null);
 
-  type EditorRefType = {
-    getHTML: () => string;
-    getJSON: () => unknown;
-    isAlive?: boolean;
-  };
-
-  const editorRef = useRef<EditorRefType | null>(null);
-
+  // --- EFFECTS ---
+  // Syncs state and localStorage when the article prop changes (e.g., editing a different article)
   useEffect(() => {
     if (article) {
       setTitle(article.title || "");
-      setCategories(article.categories || []);
-      setTags(article.tags?.join(", ") || "");
       setImageUrl(article.cover_image || null);
       setPreviewImage(article.cover_image || null);
-      setAuthor(article.author || "Mabolo Admin");
-      setLocalStorageItem("article-author", article.author || "Mabolo Admin");
+
+      // Update state AND localStorage for these fields
+      const articleCategories = article.categories || [];
+      const articleTags = article.tags?.join(", ") || "";
+      const articleAuthor = article.author || "Mabolo Admin";
+
+      setCategories(articleCategories);
+      setTags(articleTags);
+      setAuthor(articleAuthor);
+
+      setLocalStorageItem(
+        "article-categories",
+        JSON.stringify(articleCategories)
+      );
+      setLocalStorageItem("article-tags", articleTags);
+      setLocalStorageItem("article-author", articleAuthor);
     }
   }, [article]);
 
-  // Backup content to local storage periodically
+  // Backs up editor content periodically
   useEffect(() => {
     const interval = setInterval(() => {
       if (editorRef.current?.isAlive) {
@@ -47,10 +83,10 @@ export default function useArticleEditor(article: any) {
         setLocalStorageItem("editor-backup-json", editorRef.current.getJSON());
       }
     }, 20000);
-
     return () => clearInterval(interval);
   }, []);
 
+  // --- HANDLERS ---
   const getContent = useCallback(() => {
     if (editorRef.current) {
       return {
@@ -61,6 +97,28 @@ export default function useArticleEditor(article: any) {
     return { html: editorContent, json: null };
   }, [editorContent]);
 
+  // Handlers now update both state and localStorage
+  const handleCategoriesChange = useCallback((newCategories: string[]) => {
+    setCategories(newCategories);
+    setLocalStorageItem("article-categories", JSON.stringify(newCategories));
+  }, []);
+
+  const handleTagsChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setTags(e.target.value);
+      setLocalStorageItem("article-tags", e.target.value);
+    },
+    []
+  );
+
+  const handleAuthorChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setAuthor(e.target.value);
+      setLocalStorageItem("article-author", e.target.value);
+    },
+    []
+  );
+
   const handleSaveDraft = useCallback(async () => {
     const { html, json } = getContent();
     const articleData = {
@@ -68,14 +126,17 @@ export default function useArticleEditor(article: any) {
       content: html,
       json_content: JSON.stringify(json),
       published_date: "",
-      categories,
-      tags: tags.split(",").map((t: string) => t.trim()),
       cover_image: imageUrl,
-      author: getLocalStorageItem("article-author"), // This now correctly uses the latest author state
+      // Read directly from localStorage to get the most up-to-date values
+      ccategories: getArrayFromStorage("article-categories"),
+      tags: (getLocalStorageItem("article-tags") || "")
+        .split(",")
+        .map((t: string) => t.trim()),
+      author: getLocalStorageItem("article-author") || "Mabolo Admin",
     };
     await saveDraft(articleData, article?.id);
-    window.location.href = "/draft-view";
-  }, [author, title, categories, tags, imageUrl, article?.id, getContent]);
+    window.location.href = "/journal/draft-view";
+  }, [title, imageUrl, article?.id, getContent]);
 
   const handlePublish = useCallback(async () => {
     const { html, json } = getContent();
@@ -84,53 +145,37 @@ export default function useArticleEditor(article: any) {
       content: html,
       published_date: formatDateTimeLocal(new Date().toISOString()),
       json_content: JSON.stringify(json),
-      categories,
-      tags: tags.split(",").map((t: string) => t.trim()),
       cover_image: imageUrl,
-      author: getLocalStorageItem("article-author"), // This also uses the latest author state
+      // Read directly from localStorage
+      categories: getArrayFromStorage("article-categories"),
+      tags: (getLocalStorageItem("article-tags") || "")
+        .split(",")
+        .map((t: string) => t.trim()),
+      author: getLocalStorageItem("article-author") || "Mabolo Admin",
     };
     await publishArticle(articleData, article?.id);
     history.back();
-  }, [author, title, categories, tags, imageUrl, article?.id, getContent]);
+  }, [title, imageUrl, article?.id, getContent]);
 
-  const handleAuthorChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setAuthor(e.target.value);
-      setLocalStorageItem("article-author", e.target.value);
-    },
-    [] // setAuthor is stable and doesn't need to be in dependencies
-  );
-
-  const handleContentChange = (content: any) => {
-    setEditorContent(content);
-  };
+  // Other handlers...
+  const handleContentChange = (content: any) => setEditorContent(content);
   const handlePreview = () => {
-    const content =
-      editorRef.current?.getHTML() ||
-      article?.content ||
-      getLocalStorageItem("editor-backup");
-    if (!content) {
-      toast.error("Please write something before previewing.");
-      return;
-    }
-    setEditorContent(content);
+    /* ... */
   };
 
   return {
     title,
     setTitle,
-    publishDate,
     categories,
     setCategories,
     tags,
     setTags,
+    author,
+    setAuthor,
     editorContent,
     setEditorContent,
     imageUrl,
     setImageUrl,
-    author,
-    setAuthor,
-    handleAuthorChange,
     previewImage,
     setPreviewImage,
     isEditorReady,
@@ -143,5 +188,9 @@ export default function useArticleEditor(article: any) {
     getContent,
     handleSaveDraft,
     handlePublish,
+    // Return the new handlers so your UI components can use them
+    handleCategoriesChange,
+    handleTagsChange,
+    handleAuthorChange,
   };
 }

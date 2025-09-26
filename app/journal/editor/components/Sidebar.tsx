@@ -5,7 +5,6 @@ import {
   CardTitle,
   CardDescription,
   CardContent,
-  CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,65 +27,82 @@ import { cn } from "@/lib/utils";
 import useArticleEditor from "../hooks/useArticleEditor";
 import { SDGS } from "../utils/constants";
 import { uploadImage } from "../services/articleService";
+import { useState } from "react";
 
 // Define a type for the keys of the SDGS object
 type SdgKey = keyof typeof SDGS;
 
 export default function Sidebar({ article }: { article: any }) {
+  // 1. FIXED: Destructure only what's needed. Avoid direct setters like setCategories.
+  // Use the handlers from the hook to ensure localStorage is updated.
   const {
     categories,
-    setCategories,
     tags,
-    setTags,
     previewImage,
-    setPreviewImage,
+    setPreviewImage, // Kept for local UI state
     setImageUrl,
     uploading,
-    author, 
-    setAuthor,
+    setUploading, // Kept for local UI state
+    author,
     handleAuthorChange,
+    handleTagsChange,
+    handleCategoriesChange,
   } = useArticleEditor(article);
+
+  // Use a key to reset the file input after a selection
+  const [fileInputKey, setFileInputKey] = useState(Date.now());
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const imageUrl = await uploadImage(file);
-    if (imageUrl) {
-      setPreviewImage(imageUrl);
-      setImageUrl(imageUrl);
-      article.cover_image = imageUrl;
+    setUploading(true);
+    try {
+      const imageUrl = await uploadImage(file);
+      if (imageUrl) {
+        setPreviewImage(imageUrl);
+        setImageUrl(imageUrl);
+        // 2. FIXED: Removed direct prop mutation `article.cover_image = imageUrl;`
+      }
+    } catch (error) {
+      console.error("Image upload failed:", error);
+      // Optionally, show a toast notification for the error
+    } finally {
+      setUploading(false);
+      // Reset the file input so the user can select the same file again if needed
+      setFileInputKey(Date.now());
     }
   };
 
   return (
     <div className="space-y-6">
-      <Card className=" md:w-full">
+      <Card>
         <CardHeader>
           <CardTitle>Organization</CardTitle>
           <CardDescription>Add categories and tags</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2 md:w-full">
+          <div className="space-y-2">
             <Label htmlFor="author">Author</Label>
             <Input
               id="author"
               value={author}
               onChange={handleAuthorChange}
-              placeholder="Enter author's name..."
+              placeholder="Enter author's name"
             />
           </div>
-          <div className="space-y-2 grid">
+
+          <div className="space-y-2">
             <Label>SDG Categories</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   role="combobox"
-                  className="max-w-2xl justify-between md:w-64 w-52"
+                  className="w-full justify-between"
                 >
-                  <span className="truncate flex-1 text-left overflow-hidden">
-                    {categories.length > 0
+                  <span className="truncate">
+                    {(categories?.length || 0) > 0
                       ? categories
                           .map((cat: SdgKey) => SDGS[cat]?.title || cat)
                           .join(", ")
@@ -95,156 +111,121 @@ export default function Sidebar({ article }: { article: any }) {
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-[400px] p-0">
+              <PopoverContent className="w-[300px] p-0">
                 <Command>
                   <CommandInput placeholder="Search SDGs..." />
                   <CommandEmpty>No SDG found.</CommandEmpty>
                   <CommandGroup>
-                    {Object.entries(SDGS).map(([key, sdg]) => (
-                      <CommandItem
-                        key={key}
-                        value={key}
-                        onSelect={() => {
-                          setCategories((prev: SdgKey[]) =>
-                            prev.includes(key as unknown as SdgKey)
-                              ? prev.filter(
-                                  (s) => s !== (key as unknown as SdgKey)
-                                )
-                              : [...prev, key as unknown as SdgKey]
-                          );
-                        }}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            categories.includes(key as unknown as SdgKey)
-                              ? "opacity-100"
-                              : "opacity-0"
-                          )}
-                        />
-                        <div className="flex items-center gap-2">
-                          <img
-                            src={sdg.icon}
-                            alt={sdg.title}
-                            className="w-6 h-6"
-                            width={50}
-                            height={64}
+                    {Object.entries(SDGS).map(([key, sdg]) => {
+                      const sdgKey = key as unknown as SdgKey;
+                      const isSelected = categories?.includes(sdgKey);
+
+                      return (
+                        <CommandItem
+                          key={sdgKey}
+                          value={sdg.title} // Search by title
+                          onSelect={() => {
+                            const newCategories = isSelected
+                              ? categories.filter((s:any) => s !== sdgKey)
+                              : [...(categories || []), sdgKey];
+                            handleCategoriesChange(newCategories);
+                          }}
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              isSelected ? "opacity-100" : "opacity-0"
+                            )}
                           />
-                          {sdg.title}
-                        </div>
-                      </CommandItem>
-                    ))}
+                          <div className="flex items-center gap-2">
+                            <img src={sdg.icon} alt={sdg.title} className="w-6 h-6" />
+                            <span>{sdg.title}</span>
+                          </div>
+                        </CommandItem>
+                      );
+                    })}
                   </CommandGroup>
                 </Command>
               </PopoverContent>
             </Popover>
-            {categories.length > 0 && (
-              <div
-                className="grid grid-cols-1 gap-2 mt-2 w-full
-               md:w-64"
-              >
-                {categories.map((sdgKey: SdgKey) => (
-                  <div key={sdgKey}>
-                    <Badge
-                      variant="outline"
-                      className="flex items-center gap-1 relative md:text-md text-xs"
-                    >
-                      <img
-                        src={SDGS[sdgKey].icon}
-                        alt={SDGS[sdgKey].title}
-                        className="w-4 h-4 md:w-8 md:h-8 rounded-lg"
-                      />
-                      {SDGS[sdgKey].title}
-                      <X
-                        className="w-3 h-3 ml-1 cursor-pointer absolute right-3"
-                        onClick={() =>
-                          setCategories((prev: SdgKey[]) =>
-                            prev.filter((s) => s !== sdgKey)
-                          )
-                        }
-                      />
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="flex flex-wrap gap-2 pt-2">
+              {(categories || []).map((sdgKey: SdgKey) => (
+                <Badge
+                  key={sdgKey}
+                  variant="outline"
+                  className="flex items-center gap-2"
+                >
+                  <img src={SDGS[sdgKey]?.icon} className="w-4 h-4" />
+                  <span>{SDGS[sdgKey]?.title}</span>
+                  <button
+                    onClick={() => {
+                      const newCategories = categories.filter((s:any) => s !== sdgKey);
+                      handleCategoriesChange(newCategories);
+                    }}
+                    className="rounded-full hover:bg-muted"
+                    aria-label={`Remove ${SDGS[sdgKey]?.title}`}
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
           </div>
-          <div className="space-y-2 md:w-full">
-            <Label>Tags</Label>
+
+          <div className="space-y-2">
+            <Label htmlFor="tags">Tags</Label>
             <Input
+              id="tags"
+              placeholder="Add tags, separated by commas"
               value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              placeholder="Add tags..."
+              onChange={handleTagsChange}
             />
           </div>
         </CardContent>
       </Card>
 
-      <Card className=" md:w-full">
+      <Card>
         <CardHeader>
           <CardTitle>Cover Image</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="border-2 border-dashed rounded-lg p-4 text-center">
-            <div className="space-y-4">
-              <div className="border-2 border-dashed rounded-lg p-4 text-center">
-                {previewImage ? (
-                  <div className="flex flex-col items-center gap-4">
-                    <img
-                      src={previewImage}
-                      alt="Preview"
-                      className="max-h-48 max-w-full rounded-md"
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        onClick={() => setPreviewImage(null)}
-                        disabled={uploading}
-                      >
-                        Change Image
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <div className="text-gray-500 mb-4 text-sm md:text-md">
-                      Upload an image to add as a cover image
-                    </div>
-                    <label
-                      htmlFor="image-upload"
-                      className="inline-flex items-center justify-center px-4 py-2 border-2 border-dashed border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-150 cursor-pointer 
-      dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-500"
-                    >
-                      <svg
-                        className="w-5 h-5 mr-2 text-gray-400 dark:text-gray-300"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                      <span>Select Image</span>
-                    </label>
-                    <input
-                      id="image-upload"
-                      type="file"
-                      onChange={handleFileChange}
-                      accept="image/*"
-                      className="sr-only"
-                    />
-                  </div>
-                )}
+            {previewImage ? (
+              <div className="space-y-4">
+                <img
+                  src={previewImage}
+                  alt="Cover image preview"
+                  className="max-h-48 w-full object-contain rounded-md"
+                />
+                <label
+                  htmlFor="image-upload"
+                  className={cn(
+                    "cursor-pointer text-sm text-blue-600 hover:underline",
+                    uploading && "pointer-events-none opacity-50"
+                  )}
+                >
+                  {uploading ? "Uploading..." : "Change Image"}
+                </label>
               </div>
-              <p className="text-xs text-gray-500 text-center">
-                Supported formats: JPG, PNG, GIF (Max 5MB)
-              </p>
-            </div>
+            ) : (
+              <label
+                htmlFor="image-upload"
+                className="flex flex-col items-center justify-center space-y-2 cursor-pointer"
+              >
+                <svg /* Icon SVG */ className="w-12 h-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <span className="font-medium text-blue-600">Click to upload</span>
+                <p className="text-xs text-gray-500">JPG, PNG, GIF (Max 5MB)</p>
+              </label>
+            )}
+            <input
+              id="image-upload"
+              key={fileInputKey}
+              type="file"
+              onChange={handleFileChange}
+              accept="image/*"
+              className="sr-only"
+              disabled={uploading}
+            />
           </div>
         </CardContent>
       </Card>

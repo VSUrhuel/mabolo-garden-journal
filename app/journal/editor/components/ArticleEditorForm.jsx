@@ -8,6 +8,7 @@ import useArticleEditor from "../hooks/useArticleEditor";
 import Sidebar from "./Sidebar";
 import { Button } from "@/components/ui/button"; // Import the Button component
 import { getLocalStorageItem } from "@/utils/storage";
+import { get } from "http";
 
 export default function ArticleEditorForm({ article }) {
   const {
@@ -102,8 +103,18 @@ export default function ArticleEditorForm({ article }) {
                         <PreviewArticle
                           title={title}
                           publishDate={publishDate}
-                          sdgParm={categories}
-                          tags={tags}
+                          sdgParm={
+                            Array.isArray(
+                              JSON.parse(
+                                getLocalStorageItem("article-categories")
+                              )
+                            )
+                              ? JSON.parse(
+                                  getLocalStorageItem("article-categories")
+                                )
+                              : []
+                          }
+                          tags={getLocalStorageItem("article-tags") || tags}
                           content={getLocalStorageItem("editor-backup") || html}
                           jsonContent={json}
                           imageUrl={imageUrl}
@@ -113,7 +124,6 @@ export default function ArticleEditorForm({ article }) {
                         />
                       );
                     }
-
                   })()}
                 </CardContent>
               </Card>

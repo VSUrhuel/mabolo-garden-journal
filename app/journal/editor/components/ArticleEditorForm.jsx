@@ -93,19 +93,23 @@ export default function ArticleEditorForm({ article }) {
                 <CardContent className="pt-6 prose max-w-none">
                   {(() => {
                     const { html, json } =
-                      getContent() || getLocalStorageItem("editor-backup").content || {};
+                      getContent() ||
+                      getLocalStorageItem("editor-backup") ||
+                      {};
 
-                    if (html ) {
+                    if (html) {
                       return (
                         <PreviewArticle
                           title={title}
                           publishDate={publishDate}
                           sdgParm={categories}
                           tags={tags}
-                          content={getLocalStorageItem("editor-backup").content || html}
+                          content={getLocalStorageItem("editor-backup") || html}
                           jsonContent={json}
                           imageUrl={imageUrl}
-                          author={getLocalStorageItem("article-author") || author}
+                          author={
+                            getLocalStorageItem("article-author") || author
+                          }
                         />
                       );
                     }

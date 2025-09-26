@@ -67,6 +67,7 @@ export default function PreviewArticle({
 
           <span className="dark:text-100">Written by: </span>
           <span className="sm:ml-2 text-gray-700 dark:text-gray-100 font-semibold">
+            {}
             {author ?? "Mabolo Admin"}
           </span>
         </div>

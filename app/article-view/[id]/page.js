@@ -125,7 +125,7 @@ export default function ArticleView({ params }) {
             <BreadcrumbSeparator />
             <BreadcrumbItem>
               <BreadcrumbPage className="truncate text-ellipsis overflow-hidden">
-                {featuredArticle.title}
+                {featuredArticle?.title || "Untitled"}
               </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
@@ -175,7 +175,7 @@ export default function ArticleView({ params }) {
       <br />
       <div>
         <PreviewArticle
-          title={featuredArticle.title}
+          title={featuredArticle?.title || "Untitled"}
           publishDate={featuredArticle.published_date}
           sdgParm={featuredArticle.categories}
           tags={featuredArticle.tags.join(", ")}

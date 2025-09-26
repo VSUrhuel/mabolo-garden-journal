@@ -3,6 +3,7 @@ import { getLocalStorageItem, setLocalStorageItem } from "@/utils/storage";
 import { toast } from "sonner";
 import { saveDraft, publishArticle } from "../services/articleService";
 import { formatDateTimeLocal } from "../utils/helper";
+import { get } from "http";
 const getArrayFromStorage = (key: string) => {
   const storedValue = getLocalStorageItem(key);
   if (!storedValue) return [];
@@ -39,7 +40,9 @@ export default function useArticleEditor(article: any) {
   );
 
   const [editorContent, setEditorContent] = useState(article?.content || "");
-  const [imageUrl, setImageUrl] = useState(article?.cover_image || null);
+  const [imageUrl, setImageUrl] = useState(
+    () => getLocalStorageItem("article-image") || article?.cover_image || null
+  );
   const [previewImage, setPreviewImage] = useState(
     article?.cover_image || null
   );
@@ -53,7 +56,7 @@ export default function useArticleEditor(article: any) {
   useEffect(() => {
     if (article) {
       setTitle(article.title || "");
-      setImageUrl(article.cover_image || null);
+      setLocalStorageItem("article-image", article.cover_image || "");
       setPreviewImage(article.cover_image || null);
 
       // Update state AND localStorage for these fields
@@ -126,7 +129,7 @@ export default function useArticleEditor(article: any) {
       content: html,
       json_content: JSON.stringify(json),
       published_date: "",
-      cover_image: imageUrl,
+      cover_image: getLocalStorageItem("article-image") || "",
       // Read directly from localStorage to get the most up-to-date values
       ccategories: getArrayFromStorage("article-categories"),
       tags: (getLocalStorageItem("article-tags") || "")
@@ -145,7 +148,7 @@ export default function useArticleEditor(article: any) {
       content: html,
       published_date: formatDateTimeLocal(new Date().toISOString()),
       json_content: JSON.stringify(json),
-      cover_image: imageUrl,
+      cover_image: getLocalStorageItem("article-image") || "",
       // Read directly from localStorage
       categories: getArrayFromStorage("article-categories"),
       tags: (getLocalStorageItem("article-tags") || "")
@@ -160,7 +163,23 @@ export default function useArticleEditor(article: any) {
   // Other handlers...
   const handleContentChange = (content: any) => setEditorContent(content);
   const handlePreview = () => {
-    /* ... */
+    const content =
+      editorRef.current?.getHTML() ||
+      article?.content ||
+      getLocalStorageItem("editor-backup");
+
+    if (!content) {
+      toast.error("Please write something before previewing.");
+      return;
+    }
+
+    setEditorContent(content);
+  };
+
+  const handleChangeCoverImage = (url: string) => {
+    setImageUrl(url);
+    setPreviewImage(url);
+    setLocalStorageItem("article-image", url);
   };
 
   return {
@@ -192,5 +211,6 @@ export default function useArticleEditor(article: any) {
     handleCategoriesChange,
     handleTagsChange,
     handleAuthorChange,
+    handleChangeCoverImage,
   };
 }

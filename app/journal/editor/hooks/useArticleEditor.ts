@@ -125,6 +125,7 @@ export default function useArticleEditor(article: any) {
   const handleSaveDraft = useCallback(async () => {
     const { html, json } = getContent();
     const articleData = {
+      id: article?.id, // Include ID if editing an existing article
       title,
       content: html,
       json_content: JSON.stringify(json),
@@ -137,13 +138,14 @@ export default function useArticleEditor(article: any) {
         .map((t: string) => t.trim()),
       author: getLocalStorageItem("article-author") || "Mabolo Admin",
     };
-    await saveDraft(articleData, article?.id);
+    await saveDraft(articleData);
     window.location.href = "/journal/draft-view";
   }, [title, imageUrl, article?.id, getContent]);
 
   const handlePublish = useCallback(async () => {
     const { html, json } = getContent();
     const articleData = {
+      id: article?.id, // Include ID if editing an existing article
       title,
       content: html,
       published_date: formatDateTimeLocal(new Date().toISOString()),
@@ -156,7 +158,7 @@ export default function useArticleEditor(article: any) {
         .map((t: string) => t.trim()),
       author: getLocalStorageItem("article-author") || "Mabolo Admin",
     };
-    await publishArticle(articleData, article?.id);
+    await publishArticle(articleData);
     history.back();
   }, [title, imageUrl, article?.id, getContent]);
 

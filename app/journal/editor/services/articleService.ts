@@ -3,74 +3,70 @@ import { toast } from "sonner";
 import { generateInt8Id } from "../utils/helper";
 
 const supabase = createClient();
+/**
+ * A single, robust function to either insert or update an article.
+ * This avoids code duplication and becomes the single source of truth.
+ * @param {object} articleData - The data for the article.
+ * @param {'draft' | 'published'} status - The target status of the article.
+ * @returns {Promise<string|null>} The ID of the saved article, or null on failure.
+ */
+const upsertArticle = async (articleData : any, status: 'draft' | 'published') => {
+  const { id, ...dataToSave } = articleData;
+  const isNewArticle = !id;
 
-export const saveDraft = async (articleData : any, articleId = null) => {
-  if (articleId) {
+  // Prepare the data payload
+  const payload = {
+    ...dataToSave,
+    status: status,
+    author: dataToSave.author ?? "Mabolo Admin",
+    modified_at: new Date(),
+    // Set published_date only when publishing
+    published_date: status === 'published' ? new Date() : null,
+  };
+
+  if (isNewArticle) {
+    // --- INSERT (for new articles) ---
+    // Let the database generate the ID and return it with .select()
+    const { data, error } = await supabase
+      .from("article")
+      .insert(payload)
+      .select('id')
+      .single(); // .single() returns one object instead of an array
+
+    if (error) {
+      toast.error(`Failed to save: ${error.message}`);
+      return null;
+    }
+    
+    toast.success("Saved successfully!");
+    return data.id; // Return the NEW ID from the database
+
+  } else {
+    // --- UPDATE (for existing articles) ---
     const { error } = await supabase
       .from("article")
-      .update({ ...articleData, status: "draft", modified_at: new Date(), published_date: null, author: articleData.author ?? "Mabolo Admin" })
-      .eq("id", articleId);
+      .update(payload)
+      .eq("id", id);
+
     if (error) {
-      toast.error(`Failed to update draft: ${error.message}`);
-    } else {
-      toast.success("Draft updated successfully!");
+      toast.error(`Failed to update: ${error.message}`);
+      return null;
     }
-  } else {
-    const { error } = await supabase.from("article").insert([
-      {
-        ...articleData,
-        id: String(generateInt8Id()),
-        status: "draft",
-        published_date: null,
-        created_at: new Date(),
-        modified_at: new Date(),
-        author: articleData.author ?? "Mabolo Admin",
-      },
-    ]);
-    if (error) {
-      toast.error(`Failed to save draft: ${error.message}`);
-    } else {
-      toast.success("Draft saved successfully!");
-    }
+    
+    toast.success("Updated successfully!");
+    return id; // Return the EXISTING ID
   }
 };
 
-export const publishArticle = async (articleData: any, articleId = null) => {
-  if (articleId) {
-    const { error } = await supabase
-      .from("article")
-      .update({
-        ...articleData,
-        status: "published",
-        published_date: new Date(),
-        modified_at: new Date(),
-        author: articleData.author ?? "Mabolo Admin",
-      })
-      .eq("id", articleId);
-     if (error) {
-       toast.error(`Failed to publish article: ${error.message}`);
-     } else {
-       toast.success("Article updated successfully!");
-     }
-  } else {
-    const { error } = await supabase.from("article").insert([
-      {
-        ...articleData,
-        id: String(generateInt8Id()),
-        status: "published",
-        published_date: new Date(),
-        created_at: new Date(),
-        author: articleData.author ?? "Mabolo Admin",
-        modified_at: new Date(),
-      },
-    ]);
-    if (error) {
-      toast.error(`Failed to publish article: ${error.message}`);
-    } else {
-      toast.success("Article published successfully!");
-    }
-  }
+// Your old functions are now simple wrappers around the new, robust function.
+export const saveDraft = async (articleData: any) => {
+  return await upsertArticle(articleData, 'draft');
 };
+
+export const publishArticle = async (articleData: any) => {
+  return await upsertArticle(articleData, 'published');
+};
+
 
 export const uploadImage = async (file: any) => {
   try {

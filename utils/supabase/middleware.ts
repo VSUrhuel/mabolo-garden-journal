@@ -54,7 +54,7 @@ export const updateSession = async (request: NextRequest) => {
       return NextResponse.redirect(new URL("/sign-in", request.url));
     }
 
-    if (pathname.startsWith("/draft-view")) {
+    if (pathname.startsWith("/draft-view") || pathname.startsWith("/journal")) {
       if (user.error) {
         const signInUrl = new URL("/sign-in", request.url);
         signInUrl.searchParams.set("message", "admin-required");

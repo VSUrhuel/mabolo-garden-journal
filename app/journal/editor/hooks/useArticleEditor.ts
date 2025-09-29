@@ -139,7 +139,7 @@ export default function useArticleEditor(article: any) {
       author: getLocalStorageItem("article-author") || "Mabolo Admin",
     };
     await saveDraft(articleData);
-    window.location.href = "/journal/draft-view";
+    window.location.href = "/draft-view";
   }, [title, imageUrl, article?.id, getContent]);
 
   const handlePublish = useCallback(async () => {

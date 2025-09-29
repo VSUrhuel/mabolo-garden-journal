@@ -132,7 +132,7 @@ export default function useArticleEditor(article: any) {
       published_date: "",
       cover_image: getLocalStorageItem("article-image") || "",
       // Read directly from localStorage to get the most up-to-date values
-      ccategories: getArrayFromStorage("article-categories"),
+      categories: getArrayFromStorage("article-categories"),
       tags: (getLocalStorageItem("article-tags") || "")
         .split(",")
         .map((t: string) => t.trim()),

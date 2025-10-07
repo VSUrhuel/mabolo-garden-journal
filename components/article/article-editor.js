@@ -1,25 +1,15 @@
 "use client";
 
-import { Separator } from "@/components/ui/separator";
-import {
-  forwardRef,
-  useEffect,
-  useImperativeHandle,
-  useRef,
-  useState,
-} from "react";
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
-import { useEditor, EditorContent } from "@tiptap/react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { useEditor, EditorContent, BubbleMenu } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Image from "@tiptap/extension-image";
-import { CustomImage } from "@/components/article/custom-image";
-import { BubbleMenu } from "@tiptap/react";
 import Placeholder from "@tiptap/extension-placeholder";
+
+import { CustomImage } from "@/components/article/custom-image";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -37,15 +27,15 @@ const ArticleEditor = forwardRef((props, ref) => {
   const [previewImage, setPreviewImage] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [fileInputKey, setFileInputKey] = useState(0);
-
   const [pendingUpdate, setPendingUpdate] = useState(null);
+
+  // MODIFICATION: State to control the Dialog's visibility
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
   const editor = useEditor({
     extensions: [
       StarterKit,
       Placeholder.configure({
-        className: "text-gray-500",
-        emptyEditorClassName: "text-gray-500",
-        showOnlyWhenEditable: true,
         placeholder: "Write something …",
       }),
       CustomImage.configure({
@@ -67,49 +57,46 @@ const ArticleEditor = forwardRef((props, ref) => {
     },
   });
 
-  // Handle queued updates after render
   useEffect(() => {
-    props.onContentChange?.(
-      getLocalStorageItem("editor-backup") || pendingUpdate
-    );
-    setPendingUpdate(null);
-  }, [pendingUpdate]);
+    if (pendingUpdate) {
+      props.onContentChange?.(
+        getLocalStorageItem("editor-backup") || pendingUpdate
+      );
+      setPendingUpdate(null);
+    }
+  }, [pendingUpdate, props]);
+
+  // MODIFICATION: Effect to reset state when dialog is closed
+  useEffect(() => {
+    if (!isDialogOpen) {
+      setPreviewImage(null);
+      setSelectedImage(null);
+      setFileInputKey((prev) => prev + 1); // Reset file input
+    }
+  }, [isDialogOpen]);
 
   useImperativeHandle(ref, () => ({
     editorInstance: editor,
-    getEditor: () => editor,
     getHTML: () => editor?.getHTML(),
     getJSON: () => editor?.getJSON(),
     setContent: (html) => editor?.commands.setContent(html),
-    isAlive: !!editor && !editor.isDestroyed,
-    destroySafely: () => {
-      if (editor && !editor.isDestroyed) {
-        editor.setOptions({ editable: false }); // Freeze instead of destroy
-      }
-    },
-    restore: (content) => {
-      if (editor && !editor.isDestroyed) {
-      }
-    },
   }));
 
   const handleFileChange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file (JPEG, PNG, GIF)");
       return;
     }
 
-    // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
       toast.error("File size must be less than 5MB");
       return;
     }
+
     setSelectedImage(file);
-    // Create preview
     const reader = new FileReader();
     reader.onload = (event) => {
       setPreviewImage(event.target.result);
@@ -118,10 +105,7 @@ const ArticleEditor = forwardRef((props, ref) => {
   };
 
   const handleChangeImage = () => {
-    setPreviewImage(null);
-    setSelectedImage(null);
-    setFileInputKey((prev) => prev + 1); // Reset the file input
-    handleFileChange;
+    document.getElementById("image-upload")?.click();
   };
 
   const uploadImage = async () => {
@@ -147,20 +131,12 @@ const ArticleEditor = forwardRef((props, ref) => {
         data: { publicUrl },
       } = supabase.storage.from("journal-images").getPublicUrl(filePath);
 
-      editor
-        ?.chain()
-        .focus()
-        .setImage({
-          src: publicUrl,
-          width: 800,
-          height: 450,
-        })
-        .run();
+      editor?.chain().focus().setImage({ src: publicUrl }).run();
+
       toast.success("Image inserted successfully!");
 
-      // Reset the file input and preview
-      setFileInputKey((prev) => prev + 1);
-      setPreviewImage(null);
+      // MODIFICATION: Close the dialog on success
+      setIsDialogOpen(false);
     } catch (error) {
       toast.error("Failed to upload image");
     } finally {
@@ -169,10 +145,11 @@ const ArticleEditor = forwardRef((props, ref) => {
   };
 
   return (
-    <div className="min-h-[60vh] ">
+    <div className="min-h-[60vh]">
       {editor && (
         <BubbleMenu editor={editor}>
-          <Dialog>
+          {/* MODIFICATION: Control the Dialog component with state */}
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button variant="outline" size="sm" className="mr-2 border-2">
                 Insert Image
@@ -182,7 +159,6 @@ const ArticleEditor = forwardRef((props, ref) => {
             <DialogContent>
               <DialogHeader>
                 <DialogTitle className="py-2">Insert Image</DialogTitle>
-
                 <div className="space-y-4">
                   <div className="border-2 border-dashed rounded-lg p-2 text-center">
                     {previewImage ? (
@@ -213,14 +189,13 @@ const ArticleEditor = forwardRef((props, ref) => {
                         <label
                           htmlFor="image-upload"
                           className="inline-flex items-center justify-center px-4 py-2 mb-2 border-2 border-dashed border-gray-600 rounded-lg shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors duration-150 cursor-pointer 
-            dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-500"
+                          dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-500"
                         >
                           <svg
                             className="w-5 h-5 mr-2 text-gray-400 dark:text-gray-300"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
-                            xmlns="http://www.w3.org/2000/svg"
                           >
                             <path
                               strokeLinecap="round"

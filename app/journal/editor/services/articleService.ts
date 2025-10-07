@@ -88,7 +88,6 @@ export const uploadImage = async (file: any) => {
       .from("journal-cover")
       .upload(filePath, file);
 
-    toast.loading("Uploading image...");
     const {
       data: { publicUrl },
     } = supabase.storage.from("journal-cover").getPublicUrl(filePath);

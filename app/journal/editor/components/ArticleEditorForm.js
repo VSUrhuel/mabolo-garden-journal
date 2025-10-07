@@ -8,7 +8,7 @@ import useArticleEditor from "../hooks/useArticleEditor";
 import Sidebar from "./Sidebar";
 import { Button } from "@/components/ui/button"; // Import the Button component
 
-export default function ArticleEditorForm(article) {
+export default function ArticleEditorForm({ article }) {
   const {
     title,
     setTitle,
@@ -25,16 +25,15 @@ export default function ArticleEditorForm(article) {
     handleSaveDraft,
     handlePublish,
   } = useArticleEditor(article);
-
   return (
     <main className="container mx-auto py-6 px-4">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">
-            {article.title ? "Edit Article" : "New Article"}
+            {article?.title ? "Edit Article" : "New Article"}
           </h1>
           <p className="text-gray-600">
-            {article.title
+            {article?.title
               ? `Editing article: ${article.title}`
               : "Create a new article to share your thoughts and ideas."}
           </p>
